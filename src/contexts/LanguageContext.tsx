@@ -1,60 +1,49 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { translations, Language } from '@/i18n/translations';
+import React, { createContext, useContext, useCallback, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Head } from 'vite-react-ssg';
+import { translations, interpolate, Language, TranslationVars } from '@/i18n/translations';
+import { getLanguageFromPath } from '@/i18n/locales';
+import { canon } from '@/data/canon';
+import { feedPath } from '@/seo/feed';
 
 interface LanguageContextType {
   language: Language;
-  setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  /** Looks up a string and fills `{placeholders}`; brand, legal name and email are always available. */
+  t: (key: string, vars?: TranslationVars) => string;
 }
+
+const CANON_VARS: TranslationVars = {
+  brand: canon.brand,
+  legalName: canon.legal.name,
+  email: canon.contacts.email,
+};
+
+// Chinese webfont: self-hosted and split by unicode-range (see `notoSansSc` in
+// vite.config.ts); linked on /zh/ pages only.
+const NOTO_SANS_SC_URL = '/fonts/noto-sans-sc/index.css';
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'kps-language';
-const SUPPORTED: Language[] = ['en', 'ru', 'zh'];
 
-const detectInitialLanguage = (): Language => {
-  if (typeof window === 'undefined') return 'en';
-  const stored = window.localStorage.getItem(STORAGE_KEY) as Language | null;
-  if (stored && SUPPORTED.includes(stored)) return stored;
-  const nav = window.navigator.language?.slice(0, 2).toLowerCase();
-  if (nav === 'ru' || nav === 'zh') return nav;
-  return 'en';
-};
-
-// The Chinese webfont is large, so only fetch it the first time the ZH locale is used.
-let notoSCLoaded = false;
-const loadChineseFont = () => {
-  if (notoSCLoaded || typeof document === 'undefined') return;
-  notoSCLoaded = true;
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href =
-    'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap';
-  document.head.appendChild(link);
-};
-
+/** The language comes from the URL: `/ru/...` → ru, `/zh/...` → zh, anything else → en. */
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>(detectInitialLanguage);
-
-  const setLanguage = useCallback((lang: Language) => {
-    setLanguageState(lang);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(STORAGE_KEY, lang);
-    }
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.lang = language;
-    if (language === 'zh') loadChineseFont();
-  }, [language]);
+  const { pathname } = useLocation();
+  const language = getLanguageFromPath(pathname);
 
   const t = useCallback(
-    (key: string): string => translations[language][key] || key,
+    (key: string, vars?: TranslationVars): string =>
+      interpolate(translations[language][key] || key, { ...CANON_VARS, ...vars }),
     [language],
   );
 
+  const value = useMemo(() => ({ language, t }), [language, t]);
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={value}>
+      <Head htmlAttributes={{ lang: language }}>
+        <link rel="alternate" type="application/rss+xml" title={t('feed.title')} href={feedPath(language)} />
+        {language === 'zh' && <link rel="stylesheet" href={NOTO_SANS_SC_URL} />}
+      </Head>
       <div lang={language}>{children}</div>
     </LanguageContext.Provider>
   );

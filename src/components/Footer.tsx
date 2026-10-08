@@ -1,10 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
-import kpsLogo from '@/assets/kps-logo.png';
+import { localizePath } from '@/i18n/locales';
+import { canon, legalAddressLine } from '@/data/canon';
+import { sectionHasItems } from '@/content';
+import { Mail, Send } from 'lucide-react';
 
 const Footer: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const trustElements = [
     t('footer.trust1'),
@@ -32,10 +35,13 @@ const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           {/* Logo and tagline */}
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <img src={kpsLogo} alt={t('footer.companyName')} className="h-8 w-auto" />
-              <span className="font-serif text-lg text-primary-foreground">{t('footer.companyName')}</span>
-            </div>
+            <img
+              src="/brand/kps-lockup-s2-white.svg"
+              alt={canon.brand}
+              width={141}
+              height={40}
+              className="h-10 w-auto mb-4"
+            />
             <p className="text-sm text-primary-foreground/70 italic font-serif">
               {t('footer.tagline')}
             </p>
@@ -45,10 +51,10 @@ const Footer: React.FC = () => {
           <div className="flex items-center gap-6">
             {/* LinkedIn */}
             <a
-              href="https://www.linkedin.com/company/kpsglobal"
+              href={canon.contacts.linkedinCompany}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary-foreground/60 hover:text-accent transition-colors"
+              className="text-primary-foreground/60 hover:text-primary-foreground transition-colors"
               aria-label="LinkedIn"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -57,16 +63,40 @@ const Footer: React.FC = () => {
             </a>
 
             {/* WhatsApp */}
+            {canon.contacts.whatsapp && (
+              <a
+                href={canon.contacts.whatsapp.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-foreground/60 hover:text-primary-foreground transition-colors"
+                aria-label="WhatsApp"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
+              </a>
+            )}
+
+            {/* Telegram */}
+            {canon.contacts.telegram && (
+              <a
+                href={canon.contacts.telegram.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-foreground/60 hover:text-primary-foreground transition-colors"
+                aria-label="Telegram"
+              >
+                <Send size={20} />
+              </a>
+            )}
+
+            {/* Email */}
             <a
-              href="https://wa.me/6281337056615"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary-foreground/60 hover:text-accent transition-colors"
-              aria-label="WhatsApp"
+              href={`mailto:${canon.contacts.email}`}
+              className="text-primary-foreground/60 hover:text-primary-foreground transition-colors"
+              aria-label={canon.contacts.email}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-              </svg>
+              <Mail size={20} />
             </a>
           </div>
         </div>
@@ -78,33 +108,32 @@ const Footer: React.FC = () => {
               {t('footer.registered')}
             </p>
             <p className="text-xs text-primary-foreground/50">
-              {t('footer.entity')}
+              {canon.legal.name} · {t('footer.kbliLabel')} (KBLI {canon.legal.kbli.code}) · NIB {canon.legal.nib}
               <span className="mx-2 text-primary-foreground/30">·</span>
-              {t('footer.address')}
+              {legalAddressLine()}
             </p>
           </div>
           <div className="flex flex-col md:items-end gap-2 shrink-0">
-            <a
-              href="https://erp.kpsglobal.id/login"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-primary-foreground/60 hover:text-accent transition-colors border border-primary-foreground/20 hover:border-accent/50 px-3 py-1.5 rounded-sm"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-              {t('footer.staff')}
-            </a>
             <p className="text-xs text-primary-foreground/60">
-              <Link
-                to="/privacy"
-                className="hover:text-accent transition-colors underline-offset-4 hover:underline"
-              >
-                {t('footer.privacy')}
-              </Link>
+              {[
+                { path: '/commodities/', label: t('nav.commodities') },
+                { path: '/procedures/', label: t('nav.procedures') },
+                { path: '/privacy/', label: t('footer.privacy') },
+              ]
+                .filter((item) => sectionHasItems(item.path))
+                .map((item, i) => (
+                <React.Fragment key={item.path}>
+                  {i > 0 && <span className="mx-2 text-primary-foreground/30">·</span>}
+                  <Link
+                    to={localizePath(item.path, language)}
+                    className="hover:text-primary-foreground transition-colors underline-offset-4 hover:underline"
+                  >
+                    {item.label}
+                  </Link>
+                </React.Fragment>
+              ))}
               <span className="mx-2 text-primary-foreground/30">·</span>
-              © {new Date().getFullYear()} {t('footer.companyName')}. {t('footer.rights')}
+              © {new Date().getFullYear()} {canon.brand}. {t('footer.rights')}
             </p>
           </div>
         </div>

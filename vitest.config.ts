@@ -1,9 +1,11 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { contentPlugin } from "./src/content/vite-plugin";
 
 export default defineConfig({
-  plugins: [react()],
+  // Tests read fixture content, so they do not depend on what is published.
+  plugins: [react(), contentPlugin(path.resolve(__dirname, "src/test/fixtures"))],
   test: {
     environment: "jsdom",
     globals: true,

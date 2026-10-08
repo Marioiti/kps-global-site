@@ -1,9 +1,17 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Reveal from '@/hooks/use-reveal';
+import StatsBand from '@/components/StatsBand';
 
-const AboutSection: React.FC = () => {
+interface AboutSectionProps {
+  /** Off when the page header already carries the title and lead (the /about/ page). */
+  heading?: boolean;
+}
+
+const AboutSection: React.FC<AboutSectionProps> = ({ heading = true }) => {
   const { t } = useLanguage();
+  // Without the section heading the principles sit right under the page h1.
+  const PrincipleHeading = heading ? 'h3' : 'h2';
 
   const principles = [
     { titleKey: 'about.p1.title', descKey: 'about.p1.desc' },
@@ -11,57 +19,36 @@ const AboutSection: React.FC = () => {
     { titleKey: 'about.p3.title', descKey: 'about.p3.desc' },
   ];
 
-  const stats = [
-    { value: '2017', labelKey: 'stats.since' },
-    { value: '$2B+', labelKey: 'stats.volume' },
-    { value: '32+', labelKey: 'stats.deals' },
-    { value: '7', labelKey: 'stats.countries' },
-  ];
-
   return (
     <section id="about" className="py-32 relative">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Section label */}
-        <div className="flex items-center gap-3 mb-5">
-          <span className="w-6 h-px bg-accent" aria-hidden="true" />
-          <span className="text-xs tracking-[0.3em] uppercase text-primary font-medium">
-            {t('about.sectionLabel')}
-          </span>
-        </div>
-
-        <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
-          {t('about.title')}
-        </h2>
-
-        {/* Lead */}
-        <div className="mb-12 max-w-3xl space-y-5">
-          <p className="text-muted-foreground text-lg leading-relaxed">
-            {t('about.lead')}
-          </p>
-          <p className="text-muted-foreground leading-relaxed">
-            {t('about.team')}
-          </p>
-        </div>
-
-        {/* Stats band */}
-        <Reveal className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border/40 overflow-hidden rounded-sm mb-8">
-          {stats.map((s) => (
-            <div key={s.labelKey} className="bg-background p-7 md:p-8">
-              <div className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground tabular-nums">
-                {s.value}
-              </div>
-              <div className="mt-2 text-xs tracking-[0.12em] uppercase text-muted-foreground leading-snug">
-                {t(s.labelKey)}
-              </div>
+        {heading && (
+          <>
+            {/* Section label */}
+            <div className="flex items-center gap-3 mb-5">
+              <span className="w-6 h-px bg-accent" aria-hidden="true" />
+              <span className="text-xs tracking-[0.3em] uppercase text-primary font-medium">
+                {t('about.sectionLabel')}
+              </span>
             </div>
-          ))}
-        </Reveal>
 
-        {/* Clients */}
-        <div className="mb-20 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <span className="w-6 h-px bg-accent translate-y-[-3px]" aria-hidden="true" />
-          <span className="text-sm text-muted-foreground">{t('about.clients')}</span>
-        </div>
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
+              {t('about.title')}
+            </h2>
+
+            {/* Lead */}
+            <div className="mb-12 max-w-3xl space-y-5">
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                {t('about.lead')}
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                {t('about.team')}
+              </p>
+            </div>
+          </>
+        )}
+
+        <StatsBand className="mb-20" />
 
         {/* Three principles */}
         <div className="grid md:grid-cols-3 gap-px bg-border/30 overflow-hidden rounded-sm">
@@ -74,25 +61,15 @@ const AboutSection: React.FC = () => {
               <span className="text-xs tracking-[0.2em] uppercase text-primary mb-4 block">
                 {String(i + 1).padStart(2, '0')}
               </span>
-              <h3 className="font-serif text-2xl text-foreground mb-3">
+              <PrincipleHeading className="font-serif text-2xl text-foreground mb-3">
                 {t(p.titleKey)}
-              </h3>
+              </PrincipleHeading>
               <p className="text-muted-foreground leading-relaxed text-sm">
                 {t(p.descKey)}
               </p>
             </Reveal>
           ))}
         </div>
-
-        {/* What we are not */}
-        <Reveal className="mt-8 border border-primary/20 bg-primary/[0.03] rounded-sm p-8 md:p-10">
-          <span className="text-xs tracking-[0.2em] uppercase text-primary block mb-3">
-            {t('about.notLabel')}
-          </span>
-          <p className="text-foreground/80 leading-relaxed max-w-3xl">
-            {t('about.notDesc')}
-          </p>
-        </Reveal>
       </div>
     </section>
   );

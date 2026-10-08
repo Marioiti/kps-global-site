@@ -23,3 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 .claude/
+
+# vite-react-ssg build scratch
+.vite-react-ssg-temp
+
+# Internal working documents: never commit
+_internal/
+_inbox/
+CLAUDE.md

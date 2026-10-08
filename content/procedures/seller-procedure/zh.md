@@ -1,0 +1,41 @@
+---
+title: "出售商品：卖方流程"
+description: "从买方询盘到付款：卖方在每一步做什么、使用哪份单据、买方收到什么。"
+draft: false
+reviewed: false
+steps:
+  - title: "核查询盘"
+    actor: "卖方"
+    document: "买方的 ICPO 或意向书"
+    receives: "买方得知其询盘是否有效、抬头是否正确。"
+  - title: "出具报价"
+    actor: "卖方"
+    document: "注明有效期的报价，通常为五个银行工作日"
+    receives: "买方收到可在有效期内接受的报价。"
+  - title: "开放文件以供核实"
+    actor: "卖方"
+    document: "公司文件，以及通过卖方银行核实的书面授权"
+    receives: "买方一侧可以在公开来源之外核实卖方。"
+  - title: "签署合同"
+    actor: "卖方与买方"
+    document: "写明支付工具、履约保函与付款单据的合同"
+    receives: "买方收到单据路径清晰的合同。"
+  - title: "接收并核查工具"
+    actor: "卖方及其银行"
+    document: "买方的信用证或 SBLC"
+    receives: "买方收到工具可执行的确认。"
+  - title: "出具履约保函"
+    actor: "卖方银行"
+    document: "按工具计算的履约保函"
+    receives: "买方获得履约担保。"
+  - title: "装货并准备单据"
+    actor: "卖方"
+    document: "按工具要求的检验证书、提单与商业发票"
+    receives: "银行收到与工具相符的交单。"
+  - title: "收款"
+    actor: "卖方银行"
+    document: "依据信用证交单"
+    receives: "买方收到货运单据；卖方收到货款。"
+---
+
+履约保函按信用证计算。要求在工具出现之前出具保函是行不通的：没有计算的基础。坚持这一顺序的卖方，同时保护了买卖双方。

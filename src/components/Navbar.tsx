@@ -1,17 +1,31 @@
 import React, { useState, useEffect } from 'react';
+import { Link, NavLink } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Language } from '@/i18n/translations';
-import kpsLogo from '@/assets/kps-logo.png';
-import { Menu, X } from 'lucide-react';
+import { localizePath } from '@/i18n/locales';
+import { canon } from '@/data/canon';
+import { sectionHasItems } from '@/content';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Menu } from 'lucide-react';
 
-const languages: { code: Language; label: string }[] = [
-  { code: 'en', label: 'EN' },
-  { code: 'ru', label: 'RU' },
-  { code: 'zh', label: '中文' },
+const NAV_ITEMS = [
+  { key: 'nav.services', path: '/services/' },
+  { key: 'nav.commodities', path: '/commodities/' },
+  { key: 'nav.mandates', path: '/mandates/' },
+  { key: 'nav.documents', path: '/documents/' },
+  { key: 'nav.insights', path: '/insights/' },
+  { key: 'nav.news', path: '/news/' },
+  { key: 'nav.about', path: '/about/' },
+  { key: 'nav.contact', path: '/contact/' },
 ];
 
+const linkClass = (isActive: boolean) =>
+  `text-sm tracking-wider uppercase whitespace-nowrap transition-colors duration-300 ${
+    isActive ? 'text-accent font-semibold' : 'text-muted-foreground hover:text-primary'
+  }`;
+
 const Navbar: React.FC = () => {
-  const { language, setLanguage, t } = useLanguage();
+  const { t, language } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -22,19 +36,17 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const navLinks = [
-    { key: 'nav.about', href: '#about' },
-    { key: 'nav.services', href: '#services' },
-    { key: 'nav.approach', href: '#approach' },
-    { key: 'nav.sectors', href: '#sectors' },
-    { key: 'nav.contact', href: '#contact' },
-  ];
-
-  const handleNavClick = (href: string) => {
-    setMobileOpen(false);
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
+  const links = (onNavigate?: () => void) =>
+    NAV_ITEMS.filter((item) => sectionHasItems(item.path)).map((item) => (
+      <NavLink
+        key={item.key}
+        to={localizePath(item.path, language)}
+        onClick={onNavigate}
+        className={({ isActive }) => linkClass(isActive)}
+      >
+        {t(item.key)}
+      </NavLink>
+    ));
 
   return (
     <nav
@@ -46,86 +58,52 @@ const Navbar: React.FC = () => {
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div
-          className={`flex items-center justify-between transition-all duration-300 ${
+          className={`flex items-center justify-between gap-6 transition-all duration-300 ${
             scrolled ? 'h-14 lg:h-16' : 'h-16 lg:h-20'
           }`}
         >
           {/* Logo */}
-          <a href="#" className="flex items-center gap-3 group">
-            <img src={kpsLogo} alt={t('footer.companyName')} className="h-14 w-auto transition-transform duration-500 group-hover:scale-105" />
-            <span className="text-lg font-semibold tracking-wide text-foreground">KPS</span>
-          </a>
+          <Link to={localizePath('/', language)} className="flex items-center group shrink-0">
+            {/* Mark alone on narrow screens, the full lockup from sm up. */}
+            <img
+              src="/brand/kps-mark-s2-navy.svg"
+              alt={canon.brand}
+              width={40}
+              height={40}
+              className="h-10 w-10 sm:hidden transition-transform duration-500 group-hover:scale-105"
+            />
+            <img
+              src="/brand/kps-lockup-s2-navy.svg"
+              alt={canon.brand}
+              width={170}
+              height={48}
+              className="hidden sm:block h-12 w-auto transition-transform duration-500 group-hover:scale-105"
+            />
+          </Link>
 
           {/* Desktop nav */}
-          <div className="hidden lg:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <button
-                key={link.key}
-                onClick={() => handleNavClick(link.href)}
-                className="text-sm tracking-widest uppercase text-muted-foreground hover:text-primary transition-colors duration-300"
-              >
-                {t(link.key)}
-              </button>
-            ))}
-          </div>
+          <div className="hidden xl:flex items-center gap-5">{links()}</div>
 
           {/* Language switcher */}
-          <div className="hidden lg:flex items-center gap-1 border border-border rounded-sm">
-            {languages.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => setLanguage(lang.code)}
-                className={`px-3 py-1.5 text-xs tracking-wider transition-all duration-300 ${
-                  language === lang.code
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {lang.label}
+          <LanguageSwitcher className="hidden xl:flex items-center gap-1 border border-border rounded-sm shrink-0" />
+
+          {/* Mobile menu: slide-out panel */}
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger asChild>
+              <button className="xl:hidden p-2 text-foreground" aria-label={t('nav.openMenu')}>
+                <Menu size={20} />
               </button>
-            ))}
-          </div>
-
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2 text-foreground"
-          >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="flex flex-col gap-0 pt-16">
+              <SheetTitle className="sr-only">{t('nav.menuTitle')}</SheetTitle>
+              <div className="flex flex-col gap-5">{links(() => setMobileOpen(false))}</div>
+              <LanguageSwitcher
+                className="flex items-center gap-1 border border-border rounded-sm w-fit mt-10"
+                onNavigate={() => setMobileOpen(false)}
+              />
+            </SheetContent>
+          </Sheet>
         </div>
-
-        {/* Mobile menu */}
-        {mobileOpen && (
-          <div className="lg:hidden pb-6 border-t border-border/50 bg-background">
-            <div className="flex flex-col gap-4 pt-6">
-              {navLinks.map((link) => (
-                <button
-                  key={link.key}
-                  onClick={() => handleNavClick(link.href)}
-                  className="text-sm tracking-widest uppercase text-muted-foreground hover:text-primary transition-colors text-left"
-                >
-                  {t(link.key)}
-                </button>
-              ))}
-              <div className="flex items-center gap-1 border border-border rounded-sm w-fit mt-4">
-                {languages.map((lang) => (
-                  <button
-                    key={lang.code}
-                    onClick={() => setLanguage(lang.code)}
-                    className={`px-3 py-1.5 text-xs tracking-wider transition-all duration-300 ${
-                      language === lang.code
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {lang.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </nav>
   );

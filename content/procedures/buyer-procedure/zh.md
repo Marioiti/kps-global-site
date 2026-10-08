@@ -1,0 +1,41 @@
+---
+title: "购买商品：买方流程"
+description: "从第一份询盘到付款：买方在每一步做什么、使用哪份单据、卖方收到什么。"
+draft: false
+reviewed: false
+steps:
+  - title: "发出有效的询盘"
+    actor: "买方"
+    document: "有效且抬头正确的 ICPO 或意向书"
+    receives: "卖方收到可以用报价回复的询盘。"
+  - title: "接收并核查报价"
+    actor: "卖方，然后是我们"
+    document: "报价与公司文件，先交给我们核查"
+    receives: "买方收到经过核查的报价，并标明以银行工作日计的有效期。"
+  - title: "核实卖方"
+    actor: "我们，在卖方书面授权下"
+    document: "查询登记与新闻，再向卖方银行发出核实请求"
+    receives: "买方收到核实结果。尚未支付任何款项。"
+  - title: "商定合同"
+    actor: "买方与卖方"
+    document: "合同与交货指示"
+    receives: "卖方收到已签署的合同；买方持有经过核对的合同与指示。"
+  - title: "开立支付工具"
+    actor: "买方银行"
+    document: "依据 UCP 600 的跟单信用证或 SBLC"
+    receives: "卖方收到待核查的工具。"
+  - title: "收到履约保函"
+    actor: "卖方银行，在核查工具之后"
+    document: "履约保函"
+    receives: "买方获得履约担保。"
+  - title: "发运与单据"
+    actor: "卖方"
+    document: "检验证书、提单、商业发票"
+    receives: "银行收到工具所要求的单据。"
+  - title: "付款"
+    actor: "买方银行"
+    document: "凭相符单据付款"
+    receives: "卖方收到货款；买方收到货运单据。"
+---
+
+先单据，后付款。有两个信号会让交易在第一步就结束：价格好得不符合市场行情，以及在交易成立之前就要求买方付款，例如“文件公证与认证押金”。

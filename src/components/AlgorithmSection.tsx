@@ -16,7 +16,7 @@ const AlgorithmSection: React.FC = () => {
 
   return (
     <section id="approach" className="py-32 bg-surface relative">
-      <div className="absolute top-0 left-0 right-0 line-gold" />
+      <div className="absolute top-0 left-0 right-0 line-rule" />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-5">
@@ -42,7 +42,7 @@ const AlgorithmSection: React.FC = () => {
               className="bg-background p-8 md:p-10 group hover:bg-secondary/20 transition-colors duration-500 relative"
             >
               {/* Step number */}
-              <span className="text-5xl font-serif text-border/80 group-hover:text-primary/20 transition-colors duration-500 absolute top-6 right-8">
+              <span className="text-5xl font-serif text-accent/70 group-hover:text-accent transition-colors duration-500 absolute top-6 right-8">
                 {step.num}
               </span>
 

@@ -2,22 +2,11 @@ import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Reveal from '@/hooks/use-reveal';
 import { Layers, Globe } from 'lucide-react';
-
-const offices = [
-  { cityKey: 'city.sanya', countryKey: 'geo.china' },
-  { cityKey: 'city.denpasar', countryKey: 'geo.indonesia' },
-  { cityKey: 'city.moscow', countryKey: 'geo.russia' },
-  { cityKey: 'city.chicago', countryKey: 'geo.usa' },
-  { cityKey: 'city.dubai', countryKey: 'geo.uae' },
-];
-
-const markets = [
-  'geo.singapore', 'geo.china', 'geo.hongkong', 'geo.malaysia',
-  'geo.usa', 'geo.uae', 'geo.india', 'geo.indonesia',
-];
+import { canon } from '@/data/canon';
+import Corridor from '@/components/Corridor';
 
 const CapabilitiesSection: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   return (
     <section id="sectors" className="py-32 relative">
@@ -36,58 +25,58 @@ const CapabilitiesSection: React.FC = () => {
           {t('sectors.subtitle')}
         </p>
 
-        {/* Sectors + Global presence */}
-        <div className="grid lg:grid-cols-2 gap-px bg-border/30 overflow-hidden rounded-sm mb-12">
+        {/* Sectors + offices */}
+        <div className="grid lg:grid-cols-2 gap-px bg-border/30 overflow-hidden rounded-sm">
           {/* Sectors */}
           <Reveal className="bg-background p-10 md:p-14">
-            <Layers size={30} className="text-primary/40 mb-8" strokeWidth={1.5} />
-            <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-4">
+            <Layers size={30} className="text-primary/60 mb-8" strokeWidth={1.5} />
+            <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-6">
               {t('sectors.industries.title')}
             </h3>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {canon.commodities.map((c) => (
+                <span
+                  key={c.id}
+                  className="px-3 py-1.5 text-sm text-foreground/80 border border-border rounded-sm bg-background"
+                >
+                  {c.name[language]}
+                </span>
+              ))}
+            </div>
             <p className="text-muted-foreground leading-relaxed">
-              {t('sectors.industries.desc')}
+              {t('sectors.industries.projects')}
             </p>
           </Reveal>
 
-          {/* Global presence */}
+          {/* Offices and corridor */}
           <Reveal delay={140} className="bg-background p-10 md:p-14">
-            <Globe size={30} className="text-primary/40 mb-8" strokeWidth={1.5} />
+            <Globe size={30} className="text-primary/60 mb-8" strokeWidth={1.5} />
             <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-6">
               {t('sectors.presenceTitle')}
             </h3>
-            <span className="text-xs tracking-[0.2em] uppercase text-primary/70 font-semibold block mb-4">
-              {t('sectors.officesLabel')}
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
-              {offices.map((o) => (
-                <div key={o.cityKey}>
-                  <div className="text-foreground font-semibold">{t(o.cityKey)}</div>
-                  <div className="text-xs text-muted-foreground uppercase tracking-wide">{t(o.countryKey)}</div>
+            {canon.offices.length > 0 && (
+              <>
+                <span className="text-xs tracking-[0.2em] uppercase text-primary/70 font-semibold block mb-4">
+                  {t('sectors.officesLabel')}
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
+                  {canon.offices.map((o) => (
+                    <div key={o.city.en}>
+                      <div className="text-foreground font-semibold">{o.city[language]}</div>
+                      <div className="text-xs text-muted-foreground uppercase tracking-wide">{o.country[language]}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </>
+            )}
+            <div className="mt-8 pt-6 border-t border-border/60">
+              <span className="text-xs tracking-[0.2em] uppercase text-primary/70 font-semibold block mb-4">
+                {t('sectors.corridorLabel')}
+              </span>
+              <Corridor />
             </div>
-            <p className="mt-8 pt-6 border-t border-border/60 text-sm text-muted-foreground">
-              {t('sectors.entitiesNote')}
-            </p>
           </Reveal>
         </div>
-
-        {/* Markets */}
-        <Reveal className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
-          <span className="text-xs tracking-[0.2em] uppercase text-primary/70 font-semibold shrink-0">
-            {t('sectors.marketsLabel')}
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {markets.map((m) => (
-              <span
-                key={m}
-                className="px-3 py-1.5 text-sm text-foreground/80 border border-border rounded-sm bg-background"
-              >
-                {t(m)}
-              </span>
-            ))}
-          </div>
-        </Reveal>
       </div>
     </section>
   );

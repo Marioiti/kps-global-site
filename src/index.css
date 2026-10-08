@@ -4,55 +4,50 @@
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 222 47% 11%;
+    /* Brand: navy #16233F, vermilion #B3261E (accents only), paper #F6F2EA, white. */
+    --background: 0 0% 100%;
+    --foreground: 221 48% 16.7%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 221 48% 16.7%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 221 48% 16.7%;
 
-    --primary: 222 47% 18%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 221 48% 16.7%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 222 47% 18%;
+    --secondary: 40 24% 91%;
+    --secondary-foreground: 221 48% 16.7%;
 
-    --muted: 220 14% 94%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 40 24% 93%;
+    --muted-foreground: 221 14% 36%;
 
-    --accent: 42 76% 48%;
-    --accent-foreground: 222 47% 11%;
+    /* Vermilion: markers, step numbers, the active menu item, the seal. */
+    --accent: 3 71% 41%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 13% 87%;
-    --input: 220 13% 87%;
-    --ring: 222 47% 18%;
+    --border: 38 18% 85%;
+    --input: 38 18% 85%;
+    --ring: 221 48% 16.7%;
 
     --radius: 0.125rem;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 18%;
-    --sidebar-primary: 222 47% 18%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 220 14% 94%;
-    --sidebar-accent-foreground: 222 47% 18%;
-    --sidebar-border: 220 13% 87%;
-    --sidebar-ring: 222 47% 18%;
+    --sidebar-foreground: 221 48% 16.7%;
+    --sidebar-primary: 221 48% 16.7%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 24% 93%;
+    --sidebar-accent-foreground: 221 48% 16.7%;
+    --sidebar-border: 38 18% 85%;
+    --sidebar-ring: 221 48% 16.7%;
 
-    /* Custom tokens */
-    --gold: 42 76% 48%;
-    --gold-dim: 42 50% 38%;
-    --navy-deep: 222 47% 11%;
-    --navy: 222 47% 15%;
-    --navy-light: 222 35% 22%;
-    --surface: 220 16% 94%;
-    --text-primary: 222 47% 11%;
-    --text-secondary: 220 10% 40%;
-    --text-muted: 220 8% 55%;
+    /* Section background */
+    --paper: 40 40% 94.1%;
+    --surface: var(--paper);
 
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
@@ -75,36 +70,28 @@
 
   /* Chinese text support */
   [lang="zh"] h1, [lang="zh"] h2, [lang="zh"] h3, [lang="zh"] h4, [lang="zh"] h5, [lang="zh"] h6 {
-    font-family: 'Noto Sans SC', 'Manrope', sans-serif;
+    font-family: 'Noto Sans SC Variable', 'Noto Sans SC', 'Manrope', sans-serif;
     font-weight: 700;
     letter-spacing: normal;
   }
 
   [lang="zh"] {
-    font-family: 'Noto Sans SC', 'Inter', sans-serif;
+    font-family: 'Noto Sans SC Variable', 'Noto Sans SC', 'Inter', sans-serif;
   }
 }
 
 @layer utilities {
-  .text-gradient-gold {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(222 47% 18%), hsl(222 47% 30%), hsl(222 47% 18%));
-  }
-
-  .border-gradient-gold {
-    border-image: linear-gradient(135deg, hsl(222 47% 18%), hsl(222 47% 30%)) 1;
-  }
-
   .bg-surface {
     background-color: hsl(var(--surface));
   }
 
-  .glow-gold {
-    box-shadow: 0 4px 24px -6px hsl(222 47% 18% / 0.15);
+  .glow-primary {
+    box-shadow: 0 4px 24px -6px hsl(var(--primary) / 0.15);
   }
 
-  .line-gold {
-    background: linear-gradient(90deg, transparent, hsl(42 76% 48% / 0.5), transparent);
+  /* Hairline between sections */
+  .line-rule {
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.18), transparent);
     height: 1px;
   }
 }
@@ -119,12 +106,12 @@ html {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: hsl(220 20% 96%);
+  background: hsl(var(--paper));
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(220 13% 80%);
+  background: hsl(var(--border));
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(222 47% 30%);
+  background: hsl(var(--primary));
 }

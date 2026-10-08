@@ -1,16 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Language } from '@/i18n/translations';
-import Footer from '@/components/Footer';
-import kpsLogo from '@/assets/kps-logo.png';
-
-const languages: { code: Language; label: string }[] = [
-  { code: 'en', label: 'EN' },
-  { code: 'ru', label: 'RU' },
-  { code: 'zh', label: '中文' },
-];
+import { localizePath } from '@/i18n/locales';
+import { legalAddressLine } from '@/data/canon';
+import PageSEO from '@/components/PageSEO';
 
 const SECTION_KEYS = ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10'] as const;
 
@@ -58,77 +52,48 @@ function renderBody(body: string): React.ReactNode[] {
 }
 
 const PrivacyPolicy: React.FC = () => {
-  const { t, language, setLanguage } = useLanguage();
-
-  useEffect(() => {
-    document.title = `${t('privacy.title')} — KPS Global`;
-    window.scrollTo(0, 0);
-  }, [t]);
+  const { t, language } = useLanguage();
+  const homePath = localizePath('/', language);
+  const body = (key: string) => renderBody(t(key, { address: legalAddressLine() }));
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Lightweight header (the main Navbar's in-page anchors don't apply here) */}
-      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/50">
-        <div className="max-w-3xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center gap-3 group">
-              <img src={kpsLogo} alt={t('footer.companyName')} className="h-10 w-auto" />
-              <span className="text-lg font-semibold tracking-wide">KPS</span>
-            </Link>
+    <>
+      <PageSEO
+        title={t('privacy.title')}
+        description={t('seo.privacy.description')}
+        path="/privacy/"
+        crumbs={[{ name: t('privacy.title'), path: '/privacy/' }]}
+      />
+      <div className="max-w-3xl mx-auto px-6 lg:px-8 pt-36 pb-16 md:pb-24">
+        <Link
+          to={homePath}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-10"
+        >
+          <ArrowLeft size={16} />
+          {t('privacy.backHome')}
+        </Link>
 
-            <div className="flex items-center gap-1 border border-border rounded-sm">
-              {languages.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => setLanguage(lang.code)}
-                  className={`px-3 py-1.5 text-xs tracking-wider transition-all duration-300 ${
-                    language === lang.code
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {lang.label}
-                </button>
-              ))}
-            </div>
-          </div>
+        <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-3">
+          {t('privacy.title')}
+        </h1>
+        <p className="text-xs tracking-widest uppercase text-muted-foreground mb-10">
+          {t('privacy.lastUpdatedLabel')}: {t('privacy.lastUpdatedDate')}
+        </p>
+
+        <div className="text-[15px]">
+          {body('privacy.intro')}
+
+          {SECTION_KEYS.map((s) => (
+            <section key={s} className="mt-10">
+              <h2 className="font-serif text-xl md:text-2xl text-foreground mb-2">
+                {t(`privacy.${s}.title`)}
+              </h2>
+              {body(`privacy.${s}.body`)}
+            </section>
+          ))}
         </div>
-      </header>
-
-      <main className="flex-1">
-        <div className="max-w-3xl mx-auto px-6 lg:px-8 py-16 md:py-24">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-10"
-          >
-            <ArrowLeft size={16} />
-            {t('privacy.backHome')}
-          </Link>
-
-          <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-3">
-            {t('privacy.title')}
-          </h1>
-          <p className="text-xs tracking-widest uppercase text-muted-foreground mb-10">
-            {t('privacy.lastUpdatedLabel')}: {t('privacy.lastUpdatedDate')}
-          </p>
-
-          <div className="text-[15px]">
-            {renderBody(t('privacy.intro'))}
-
-            {SECTION_KEYS.map((s) => (
-              <section key={s} className="mt-10">
-                <h2 className="font-serif text-xl md:text-2xl text-foreground mb-2">
-                  {t(`privacy.${s}.title`)}
-                </h2>
-                {renderBody(t(`privacy.${s}.body`))}
-              </section>
-            ))}
-          </div>
-        </div>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 };
 

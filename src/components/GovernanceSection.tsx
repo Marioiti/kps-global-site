@@ -2,6 +2,7 @@ import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Reveal from '@/hooks/use-reveal';
 import { UserCheck, Ban, Scale, Lock } from 'lucide-react';
+import RoleNote from '@/components/RoleNote';
 
 const items = [
   { titleKey: 'governance.kyc.title', descKey: 'governance.kyc.desc', icon: UserCheck },
@@ -15,7 +16,7 @@ const GovernanceSection: React.FC = () => {
 
   return (
     <section id="governance" className="py-32 bg-surface relative">
-      <div className="absolute top-0 left-0 right-0 line-gold" />
+      <div className="absolute top-0 left-0 right-0 line-rule" />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-5">
@@ -43,7 +44,7 @@ const GovernanceSection: React.FC = () => {
               >
                 <Icon
                   size={24}
-                  className="text-primary/50 mb-6 group-hover:text-primary transition-colors duration-500"
+                  className="text-primary/60 mb-6 group-hover:text-primary transition-colors duration-500"
                   strokeWidth={1.5}
                 />
                 <h3 className="font-serif text-xl text-foreground mb-3">
@@ -56,6 +57,8 @@ const GovernanceSection: React.FC = () => {
             );
           })}
         </div>
+
+        <RoleNote className="mt-8" />
       </div>
     </section>
   );
