@@ -16,13 +16,13 @@ const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className="border-t border-border/50 bg-primary text-primary-foreground">
+    <footer className="border-t border-border/50 dark:border-border bg-band text-band-foreground">
       {/* Trust strip */}
-      <div className="border-b border-primary-foreground/20">
+      <div className="border-b border-band-foreground/20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
           <div className="flex flex-wrap justify-center gap-8 md:gap-16">
             {trustElements.map((item) => (
-              <span key={item} className="text-xs tracking-[0.3em] uppercase text-primary-foreground/70">
+              <span key={item} className="text-xs tracking-[0.3em] uppercase text-band-foreground/70">
                 {item}
               </span>
             ))}
@@ -42,7 +42,7 @@ const Footer: React.FC = () => {
               height={40}
               className="h-10 w-auto mb-4"
             />
-            <p className="text-sm text-primary-foreground/70 italic font-serif">
+            <p className="text-sm text-band-foreground/70 italic font-serif">
               {t('footer.tagline')}
             </p>
           </div>
@@ -54,7 +54,7 @@ const Footer: React.FC = () => {
               href={canon.contacts.linkedinCompany}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary-foreground/60 hover:text-primary-foreground transition-colors"
+              className="text-band-foreground/60 hover:text-band-foreground transition-colors"
               aria-label="LinkedIn"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -68,7 +68,7 @@ const Footer: React.FC = () => {
                 href={canon.contacts.whatsapp.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary-foreground/60 hover:text-primary-foreground transition-colors"
+                className="text-band-foreground/60 hover:text-band-foreground transition-colors"
                 aria-label="WhatsApp"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -83,7 +83,7 @@ const Footer: React.FC = () => {
                 href={canon.contacts.telegram.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary-foreground/60 hover:text-primary-foreground transition-colors"
+                className="text-band-foreground/60 hover:text-band-foreground transition-colors"
                 aria-label="Telegram"
               >
                 <Send size={20} />
@@ -93,7 +93,7 @@ const Footer: React.FC = () => {
             {/* Email */}
             <a
               href={`mailto:${canon.contacts.email}`}
-              className="text-primary-foreground/60 hover:text-primary-foreground transition-colors"
+              className="text-band-foreground/60 hover:text-band-foreground transition-colors"
               aria-label={canon.contacts.email}
             >
               <Mail size={20} />
@@ -102,19 +102,19 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Bottom line */}
-        <div className="mt-12 pt-8 border-t border-primary-foreground/20 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="mt-12 pt-8 border-t border-band-foreground/20 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="md:max-w-2xl space-y-2">
-            <p className="text-xs text-primary-foreground/60">
+            <p className="text-xs text-band-foreground/60">
               {t('footer.registered')}
             </p>
-            <p className="text-xs text-primary-foreground/50">
+            <p className="text-xs text-band-foreground/50 dark:text-band-foreground/60">
               {canon.legal.name} · {t('footer.kbliLabel')} (KBLI {canon.legal.kbli.code}) · NIB {canon.legal.nib}
-              <span className="mx-2 text-primary-foreground/30">·</span>
+              <span className="mx-2 text-band-foreground/30">·</span>
               {legalAddressLine()}
             </p>
           </div>
           <div className="flex flex-col md:items-end gap-2 shrink-0">
-            <p className="text-xs text-primary-foreground/60">
+            <p className="text-xs text-band-foreground/60">
               {[
                 { path: '/commodities/', label: t('nav.commodities') },
                 { path: '/procedures/', label: t('nav.procedures') },
@@ -123,16 +123,16 @@ const Footer: React.FC = () => {
                 .filter((item) => sectionHasItems(item.path))
                 .map((item, i) => (
                 <React.Fragment key={item.path}>
-                  {i > 0 && <span className="mx-2 text-primary-foreground/30">·</span>}
+                  {i > 0 && <span className="mx-2 text-band-foreground/30">·</span>}
                   <Link
                     to={localizePath(item.path, language)}
-                    className="hover:text-primary-foreground transition-colors underline-offset-4 hover:underline"
+                    className="hover:text-band-foreground transition-colors underline-offset-4 hover:underline"
                   >
                     {item.label}
                   </Link>
                 </React.Fragment>
               ))}
-              <span className="mx-2 text-primary-foreground/30">·</span>
+              <span className="mx-2 text-band-foreground/30">·</span>
               © {new Date().getFullYear()} {canon.brand}. {t('footer.rights')}
             </p>
           </div>

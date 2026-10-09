@@ -5,6 +5,7 @@ import { localizePath } from '@/i18n/locales';
 import { canon } from '@/data/canon';
 import { sectionHasItems } from '@/content';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { ThemeChoice, ThemeToggle } from '@/components/ThemeToggle';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
 
@@ -64,28 +65,25 @@ const Navbar: React.FC = () => {
         >
           {/* Logo */}
           <Link to={localizePath('/', language)} className="flex items-center group shrink-0">
-            {/* Mark alone on narrow screens, the full lockup from sm up. */}
-            <img
-              src="/brand/kps-mark-s2-navy.svg"
-              alt={canon.brand}
-              width={40}
-              height={40}
-              className="h-10 w-10 sm:hidden transition-transform duration-500 group-hover:scale-105"
-            />
-            <img
-              src="/brand/kps-lockup-s2-navy.svg"
-              alt={canon.brand}
-              width={170}
-              height={48}
-              className="hidden sm:block h-12 w-auto transition-transform duration-500 group-hover:scale-105"
-            />
+            {/* Mark alone on narrow screens, the full lockup from sm up; white versions in the dark theme. */}
+            <span className="sm:hidden transition-transform duration-500 group-hover:scale-105">
+              <img src="/brand/kps-mark-s2-navy.svg" alt={canon.brand} width={40} height={40} className="h-10 w-10 dark:hidden" />
+              <img src="/brand/kps-mark-s2-white.svg" alt={canon.brand} width={40} height={40} className="hidden h-10 w-10 dark:block" />
+            </span>
+            <span className="hidden sm:block transition-transform duration-500 group-hover:scale-105">
+              <img src="/brand/kps-lockup-s2-navy.svg" alt={canon.brand} width={170} height={48} className="h-12 w-auto dark:hidden" />
+              <img src="/brand/kps-lockup-s2-white.svg" alt={canon.brand} width={170} height={48} className="hidden h-12 w-auto dark:block" />
+            </span>
           </Link>
 
           {/* Desktop nav */}
           <div className="hidden xl:flex items-center gap-5">{links()}</div>
 
-          {/* Language switcher */}
-          <LanguageSwitcher className="hidden xl:flex items-center gap-1 border border-border rounded-sm shrink-0" />
+          {/* Language and theme */}
+          <div className="hidden xl:flex items-center gap-2 shrink-0">
+            <LanguageSwitcher className="flex items-center gap-1 border border-border rounded-sm" />
+            <ThemeToggle />
+          </div>
 
           {/* Mobile menu: slide-out panel */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -101,6 +99,7 @@ const Navbar: React.FC = () => {
                 className="flex items-center gap-1 border border-border rounded-sm w-fit mt-10"
                 onNavigate={() => setMobileOpen(false)}
               />
+              <ThemeChoice className="mt-4" />
             </SheetContent>
           </Sheet>
         </div>

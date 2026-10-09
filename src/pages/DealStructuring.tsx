@@ -74,7 +74,7 @@ const DealStructuring: React.FC = () => {
           <FeatureGrid
             items={STAGES.map((n) => ({ title: t(`deal.stage${n}.title`), desc: t(`deal.stage${n}.desc`) }))}
           />
-          <RoleNote className="mt-8" />
+          <RoleNote className="mt-8" onSurface />
         </div>
       </section>
 

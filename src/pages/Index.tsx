@@ -57,7 +57,7 @@ const Index: React.FC = () => {
       <OpenMandates />
       <DocumentsBlock documents={documentsBySlugs(['mutual-nda', 'deal-health-check', 'before-payment'])} surface />
 
-      <section className="pb-24">
+      <section className="pt-16 pb-24">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <RoleNote />
         </div>

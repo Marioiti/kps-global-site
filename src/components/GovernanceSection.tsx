@@ -58,7 +58,7 @@ const GovernanceSection: React.FC = () => {
           })}
         </div>
 
-        <RoleNote className="mt-8" />
+        <RoleNote className="mt-8" onSurface />
       </div>
     </section>
   );

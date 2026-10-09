@@ -131,7 +131,7 @@ const Article: React.FC<{ collection: Collection }> = ({ collection }) => {
           <article
             lang={version.language}
             onClick={onBodyClick}
-            className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-a:underline-offset-4"
+            className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-a:underline-offset-4"
             dangerouslySetInnerHTML={{ __html: body.html }}
           />
 

@@ -32,7 +32,7 @@ const ComplianceKyc: React.FC = () => {
           <FeatureGrid
             items={ITEMS.map((key) => ({ title: t(`compliance.${key}.title`), desc: t(`compliance.${key}.desc`) }))}
           />
-          <RoleNote className="mt-8" />
+          <RoleNote className="mt-8" onSurface />
         </div>
       </section>
 

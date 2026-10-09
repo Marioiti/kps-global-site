@@ -115,7 +115,7 @@ const DocumentPage: React.FC = () => {
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-5">{t('documents.whatItIs')}</h2>
           <div
             lang={version.language}
-            className="prose prose-slate max-w-none prose-a:text-primary prose-a:underline-offset-4 mb-14"
+            className="prose prose-slate dark:prose-invert max-w-none prose-a:text-primary prose-a:underline-offset-4 mb-14"
             onClick={onBodyClick}
             dangerouslySetInnerHTML={{ __html: body.html }}
           />

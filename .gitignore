@@ -31,3 +31,11 @@ dist-ssr
 _internal/
 _inbox/
 CLAUDE.md
+
+# Playwright
+test-results/
+playwright-report/
+
+# Conflict copies left by file sync ("name 2.ext", "name 2")
+* [0-9].*
+* [0-9]

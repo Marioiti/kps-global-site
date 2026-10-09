@@ -156,7 +156,8 @@ npm run dev                  # http://localhost:8080
 ```sh
 npm run lint
 npm run test
-npm run build     # static site in dist/
+npm run build     # static site in dist/ (first checks for "name 2.ts"-style copies: npm run check:dupes)
+npm run test:e2e  # browser checks on the built site, uses the local Google Chrome
 npm run preview   # serves dist/ the way GitHub Pages does, incl. 404
 ```
 

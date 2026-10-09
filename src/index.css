@@ -49,7 +49,57 @@
     --paper: 40 40% 94.1%;
     --surface: var(--paper);
 
+    /* Footer and the motto strip: navy in both themes, its own shade in the dark one. */
+    --band: 221 48% 16.7%;
+    --band-foreground: 0 0% 100%;
+
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Dark theme: night navy, paper text, a lighter vermilion for markers and links. */
+  .dark {
+    --background: 220 46% 10.2%;
+    --foreground: 39 32% 89.6%;
+
+    --card: 219 46% 14.5%;
+    --card-foreground: 39 32% 89.6%;
+
+    --popover: 219 46% 14.5%;
+    --popover-foreground: 39 32% 89.6%;
+
+    --primary: 40 40% 94.1%;
+    --primary-foreground: 221 48% 16.7%;
+
+    --secondary: 219 42% 18.8%;
+    --secondary-foreground: 39 32% 89.6%;
+
+    --muted: 219 42% 17.6%;
+    --muted-foreground: 221 17% 71.2%;
+
+    --accent: 7 72% 62.4%;
+    --accent-foreground: 220 46% 10.2%;
+
+    --destructive: 0 72% 60%;
+    --destructive-foreground: 220 46% 10.2%;
+
+    --border: 220 34% 22.5%;
+    --input: 220 34% 22.5%;
+    --ring: 40 40% 94.1%;
+
+    --sidebar-background: 220 46% 10.2%;
+    --sidebar-foreground: 39 32% 89.6%;
+    --sidebar-primary: 40 40% 94.1%;
+    --sidebar-primary-foreground: 221 48% 16.7%;
+    --sidebar-accent: 219 42% 17.6%;
+    --sidebar-accent-foreground: 39 32% 89.6%;
+    --sidebar-border: 220 34% 22.5%;
+    --sidebar-ring: 40 40% 94.1%;
+
+    --paper: 220 46% 12.9%;
+    --surface: var(--paper);
+
+    --band: 221 48% 16.7%;
+    --band-foreground: 39 32% 89.6%;
   }
 }
 

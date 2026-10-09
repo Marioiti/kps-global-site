@@ -101,7 +101,7 @@ const ShortCommodity: React.FC<{ page: CommodityContent }> = ({ page }) => {
         <div className="max-w-3xl mx-auto px-6 lg:px-8">
           <BackLink />
           <div
-            className="prose prose-slate max-w-none prose-a:text-primary prose-a:underline-offset-4"
+            className="prose prose-slate dark:prose-invert max-w-none prose-a:text-primary prose-a:underline-offset-4"
             onClick={onBodyClick}
             dangerouslySetInnerHTML={{ __html: page.html }}
           />
@@ -140,7 +140,7 @@ const FullCommodity: React.FC<{ page: CommodityContent & CommodityFullPage }> = 
           <BackLink />
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-6">{t('commodity.dealTitle')}</h2>
           <div
-            className="prose prose-slate max-w-none prose-a:text-primary prose-a:underline-offset-4"
+            className="prose prose-slate dark:prose-invert max-w-none prose-a:text-primary prose-a:underline-offset-4"
             onClick={onBodyClick}
             dangerouslySetInnerHTML={{ __html: page.html }}
           />
