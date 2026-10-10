@@ -1,16 +1,17 @@
 import React from 'react';
 import { Link, useLoaderData, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
-import PageHeader from '@/components/PageHeader';
 import SEO from '@/components/SEO';
+import GlyphHero from '@/components/v3/GlyphHero';
+import DossierSection from '@/components/v3/DossierSection';
+import RuledList from '@/components/v3/RuledList';
 import NotFound from '@/pages/NotFound';
-import Reveal from '@/hooks/use-reveal';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInternalLinks } from '@/hooks/use-internal-links';
 import { canon } from '@/data/canon';
 import { formatDate } from '@/i18n/format';
 import { absoluteUrl, localizePath } from '@/i18n/locales';
-import { displayVersion, entryPath, findEntry, publishedLanguages } from '@/content';
+import { displayVersion, entryPath, entryUrl, findEntry, getCollection, type ContentEntry } from '@/content';
+import { DOCUMENT_STAGES } from '@/content/constants';
 import { previewImage } from '@/content/preview';
 import { breadcrumbJsonLd } from '@/seo/jsonld';
 import type { ArticleData } from '@/pages/Article';
@@ -24,7 +25,24 @@ const useTurnaround = (slug: string): string | null => {
   return null;
 };
 
-/** /documents/<slug>/: what it is, who issues it, at which step, what is inside; preview; request. */
+const stageIndex = (entry: ContentEntry) => (entry.stage ? DOCUMENT_STAGES.indexOf(entry.stage) : DOCUMENT_STAGES.length);
+
+/** Up to three other documents: the same deal step first, then the nearest steps. */
+const relatedDocuments = (entry: ContentEntry): ContentEntry[] =>
+  getCollection('documents')
+    .filter((other) => other.slug !== entry.slug)
+    .sort(
+      (a, b) =>
+        Math.abs(stageIndex(a) - stageIndex(entry)) - Math.abs(stageIndex(b) - stageIndex(entry)) ||
+        stageIndex(a) - stageIndex(b) ||
+        a.slug.localeCompare(b.slug),
+    )
+    .slice(0, 3);
+
+/**
+ * /documents/<slug>/: what it is, when it is needed, what is inside, version and date, preview,
+ * a request and related documents. The document itself is in English, so the English page is canonical.
+ */
 const DocumentPage: React.FC = () => {
   const { t, language } = useLanguage();
   const { slug = '' } = useParams();
@@ -39,15 +57,18 @@ const DocumentPage: React.FC = () => {
   const path = entryPath(entry);
   const preview = previewImage(entry, version.language);
   const listTitle = t('nav.documents');
+  const stageLabel = entry.stage ? t(`documents.stage.${entry.stage}`) : listTitle;
   const fields = [
     ['documents.field.issuer', entry.issuer ? t(`documents.issuer.${entry.issuer}`) : ''],
-    ['documents.field.dealStep', body.document.dealStep],
     ['documents.field.access', entry.access ? t(`documents.access.${entry.access}`) : ''],
     ...(turnaround ? [['documents.field.turnaround', turnaround]] : []),
     ['documents.field.version', entry.version ?? ''],
     ['documents.field.date', formatDate(entry.date, language)],
   ];
   const requestUrl = `${localizePath('/contact/', language)}?docs=${encodeURIComponent(entry.slug)}`;
+  const related = relatedDocuments(entry);
+  let n = 0;
+  const next = () => ++n;
 
   return (
     <>
@@ -55,8 +76,8 @@ const DocumentPage: React.FC = () => {
         title={t('seo.titleSuffix', { title: version.title })}
         description={version.description}
         path={path}
-        canonicalLanguage={version.language}
-        alternateLanguages={publishedLanguages(entry)}
+        canonicalLanguage="en"
+        alternateLanguages={['en']}
         image={preview ? absoluteUrl(preview.path) : absoluteUrl('/og-image.png')}
         imageSize={preview ? preview.size : undefined}
         jsonLd={[
@@ -70,93 +91,119 @@ const DocumentPage: React.FC = () => {
           ),
         ]}
       />
-      <PageHeader
-        label={entry.group ? t(`documents.group.${entry.group}`) : listTitle}
+      <GlyphHero
+        glyph="文件"
+        crumb={{ label: listTitle, path: '/documents/' }}
+        current={stageLabel}
         title={version.title}
-        lead={version.description}
+        titleLang={version.language}
+        lead={
+          <>
+            <p lang={version.language}>{version.description}</p>
+            {language !== 'en' && (
+              <p className="text-[15px] text-muted-foreground">{version.language !== language ? t('article.fallbackNote') : t('documents.languageNote')}</p>
+            )}
+          </>
+        }
       >
-        <div className="mt-10 flex flex-wrap items-center gap-5">
-          <Link
-            to={requestUrl}
-            className="group inline-flex items-center gap-3 px-7 py-3.5 bg-primary text-primary-foreground text-sm tracking-wide font-semibold hover:bg-primary/90 hover:gap-4 transition-all duration-300 rounded-sm"
-          >
-            {t('documents.request')}
-            <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          <Link to={requestUrl} className="btn-accent">
+            {t('documents.requestThis')}
           </Link>
-          <span className="text-sm text-muted-foreground max-w-md">{t('documents.requestText')}</span>
+          <span className="text-[15px] text-muted-foreground max-w-[26em]">{t('documents.requestText')}</span>
         </div>
-      </PageHeader>
+      </GlyphHero>
 
-      <section className="py-16 md:py-20 relative">
-        <div className="max-w-4xl mx-auto px-6 lg:px-8">
-          <Link
-            to={localizePath('/documents/', language)}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-10"
-          >
-            <ArrowLeft size={16} />
-            {t('documents.back')}
-          </Link>
+      <DossierSection id="what" n={next()}>
+        <h2 className="h2-v3 mb-5">{t('documents.whatItIs')}</h2>
+        <div
+          lang={version.language}
+          className="prose dark:prose-invert max-w-none measure text-body prose-p:text-body prose-a:text-foreground prose-a:underline-offset-4"
+          onClick={onBodyClick}
+          dangerouslySetInnerHTML={{ __html: body.html }}
+        />
+      </DossierSection>
 
-          {version.language !== language && (
-            <p className="mb-8 text-sm text-muted-foreground border-l-2 border-accent pl-4">{t('article.fallbackNote')}</p>
+      <DossierSection id="when" n={next()} band>
+        <h2 className="h2-v3 mb-5">{t('documents.when')}</h2>
+        <p className="text-body">
+          <strong className="font-semibold text-foreground">{stageLabel}.</strong> <span lang={version.language}>{body.document.dealStep}</span>
+        </p>
+      </DossierSection>
+
+      <DossierSection id="contents" n={next()}>
+        <h2 className="h2-v3 mb-5">{t('documents.contents')}</h2>
+        <RuledList
+          className="measure"
+          items={body.document.contents.map((item) => ({ key: item, content: <p lang={version.language} className="py-3 text-body">{item}</p> }))}
+        />
+      </DossierSection>
+
+      <DossierSection id="version" n={next()} band>
+        <h2 className="h2-v3 mb-5">{t('documents.field.version')}</h2>
+        <dl className="max-w-2xl border-b border-border text-base">
+          {fields.map(([labelKey, value]) => (
+            <div key={labelKey} className="grid sm:grid-cols-[200px_minmax(0,1fr)] gap-1 sm:gap-6 py-3 border-t border-border">
+              <dt className="text-muted-foreground">{t(labelKey)}</dt>
+              <dd className="text-foreground tabular-nums">{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <Link to={requestUrl} className="btn-accent mt-8">
+          {t('documents.requestThis')}
+        </Link>
+        <p className="mt-6 text-[15px] text-muted-foreground">{t('documents.disclaimer')}</p>
+      </DossierSection>
+
+      {entry.access === 'preview' && (
+        <DossierSection id="preview" n={next()}>
+          <h2 className="h2-v3 mb-5">{t('documents.preview')}</h2>
+          {entry.previewImages?.length ? (
+            <div className="space-y-6 max-w-3xl">
+              {entry.previewImages.map((src, i) => (
+                <img
+                  key={src}
+                  src={src}
+                  alt={t('documents.previewAlt', { title: version.title, n: i + 1 })}
+                  width={1200}
+                  height={1697}
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                  onContextMenu={(event) => event.preventDefault()}
+                  className="w-full border border-border bg-card select-none"
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">{t('documents.previewSoon')}</p>
           )}
+        </DossierSection>
+      )}
 
-          <dl className="border border-border/60 rounded-sm divide-y divide-border/40 bg-background mb-14">
-            {fields.map(([labelKey, value]) => (
-              <div key={labelKey} className="grid sm:grid-cols-[200px_1fr] gap-1 sm:gap-6 px-6 py-4">
-                <dt className="text-xs tracking-[0.15em] uppercase text-muted-foreground pt-0.5">{t(labelKey)}</dt>
-                <dd lang={labelKey === 'documents.field.dealStep' ? version.language : undefined} className="text-sm text-foreground">
-                  {value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-5">{t('documents.whatItIs')}</h2>
-          <div
-            lang={version.language}
-            className="prose prose-slate dark:prose-invert max-w-none prose-a:text-primary prose-a:underline-offset-4 mb-14"
-            onClick={onBodyClick}
-            dangerouslySetInnerHTML={{ __html: body.html }}
+      {related.length > 0 && (
+        <DossierSection id="related" n={next()} band={entry.access === 'preview'}>
+          <h2 className="h2-v3 mb-5">{t('documents.relatedTitle')}</h2>
+          <RuledList
+            items={related.map((other) => {
+              const v = displayVersion(other, language);
+              return {
+                key: other.slug,
+                content: (
+                  <p className="py-3.5">
+                    <Link to={entryUrl(other, language)} lang={v.language} className="font-display text-[21px] text-foreground underline-offset-[5px] hover:underline">
+                      {v.title}
+                    </Link>
+                    <span lang={v.language} className="block text-[15px] text-body">
+                      {v.description}
+                    </span>
+                  </p>
+                ),
+              };
+            })}
           />
-
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-6">{t('documents.contents')}</h2>
-          <ul lang={version.language} className="space-y-3 mb-14">
-            {body.document.contents.map((item) => (
-              <li key={item} className="flex gap-3 text-foreground/80 leading-relaxed">
-                <Check size={18} className="text-primary shrink-0 mt-1" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-
-          {entry.access === 'preview' && (
-            <>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-6">{t('documents.preview')}</h2>
-              {entry.previewImages?.length ? (
-                <div className="space-y-6 mb-14">
-                  {entry.previewImages.map((src, i) => (
-                    <Reveal key={src}>
-                      <img
-                        src={src}
-                        alt={t('documents.previewAlt', { title: version.title, n: i + 1 })}
-                        loading="lazy"
-                        draggable={false}
-                        onContextMenu={(event) => event.preventDefault()}
-                        className="w-full border border-border/60 rounded-sm bg-background select-none"
-                      />
-                    </Reveal>
-                  ))}
-                </div>
-              ) : (
-                <p className="mb-14 text-muted-foreground">{t('documents.previewSoon')}</p>
-              )}
-            </>
-          )}
-
-          <p className="text-sm text-muted-foreground border-t border-border/60 pt-6">{t('documents.disclaimer')}</p>
-        </div>
-      </section>
+        </DossierSection>
+      )}
     </>
   );
 };

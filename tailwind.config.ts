@@ -4,7 +4,7 @@ import typography from "@tailwindcss/typography";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: ["./index.html", "./src/**/*.{ts,tsx}"],
   prefix: "",
   theme: {
     container: {
@@ -16,10 +16,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Manrope', 'Inter', 'system-ui', 'sans-serif'],
-        serif: ['Manrope', 'Inter', 'system-ui', 'sans-serif'],
-        chinese: ['Noto Sans SC Variable', 'Noto Sans SC', 'Inter', 'sans-serif'],
+        sans: ['Golos Text', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Spectral', 'Georgia', 'serif'],
+        serif: ['Spectral', 'Georgia', 'serif'],
+        chinese: ['Noto Sans SC Variable', 'Noto Sans SC', 'Golos Text', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -27,6 +27,8 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        body: "hsl(var(--body))",
+        "rule-soft": "hsl(var(--rule-soft))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -43,9 +45,10 @@ export default {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
-        band: {
-          DEFAULT: "hsl(var(--band))",
-          foreground: "hsl(var(--band-foreground))",
+        status: {
+          red: "hsl(var(--status-red))",
+          amber: "hsl(var(--status-amber))",
+          green: "hsl(var(--status-green))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
@@ -61,55 +64,11 @@ export default {
         },
         surface: "hsl(var(--surface))",
         paper: "hsl(var(--paper))",
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
-        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-      },
-      keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
-        },
-        "fade-in": {
-          from: { opacity: "0", transform: "translateY(16px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
-        "fade-in-slow": {
-          from: { opacity: "0" },
-          to: { opacity: "1" },
-        },
-        "line-expand": {
-          from: { width: "0%" },
-          to: { width: "100%" },
-        },
-        "petal-rotate": {
-          from: { transform: "rotate(0deg)" },
-          to: { transform: "rotate(360deg)" },
-        },
-      },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.8s ease-out forwards",
-        "fade-in-slow": "fade-in-slow 1.5s ease-out forwards",
-        "line-expand": "line-expand 1.5s ease-out forwards",
-        "petal-rotate": "petal-rotate 60s linear infinite",
       },
     },
   },

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { HelmetProvider } from "react-helmet-async";
 import { createMemoryRouter, RouterProvider, type RouteObject } from "react-router-dom";
 import { routes } from "@/App";
@@ -42,6 +42,7 @@ const card = (extra: string[] = [], text = "Body.") =>
     "---",
     'title: "Form"',
     "group: standard-forms",
+    "stage: before-loi",
     "issuer: kps",
     'dealStep: "Step"',
     'summary: "Summary"',
@@ -128,26 +129,54 @@ describe("document cards", () => {
 });
 
 describe("document pages", () => {
-  it("lists documents by group with the disclaimer", async () => {
+  it("lists documents as rows with group, version and a request, and the disclaimer", async () => {
     await renderAt("/documents/");
-    expect(screen.getByRole("heading", { level: 2, name: translations.en["documents.group.standard-forms"] })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: translations.en["documents.group.checklists"] })).toBeInTheDocument();
-    expect(screen.getAllByText(translations.en["documents.disclaimer"]).length).toBeGreaterThan(0);
-    expect(document.querySelector('a[href="/documents/nda-form/"]')).not.toBeNull();
+    const en = translations.en;
+    expect(screen.getByRole("heading", { level: 1, name: en["nav.documents"] })).toBeInTheDocument();
+    expect(document.querySelector("main")).toHaveTextContent("文件");
+    const rows = within(document.getElementById("library")!).getAllByRole("listitem");
+    expect(rows.map((li) => within(li).getAllByRole("link")[0].getAttribute("href"))).toEqual(["/documents/check-one/", "/documents/nda-form/"]);
+    expect(within(rows[1]).getByRole("link", { name: new RegExp(`^${en["documents.requestThis"]}.*Test NDA$`) })).toHaveAttribute("href", "/contact/?docs=nda-form");
+    expect(rows[1]).toHaveTextContent(en["documents.group.standard-forms"]);
+    expect(screen.getAllByText(en["documents.disclaimer"]).length).toBeGreaterThan(0);
     expect(document.querySelector('a[href="/documents/hidden-form/"]')).toBeNull();
   });
 
-  it("shows a card with its fields and a request link to the form, without a preview for on-request files", async () => {
+  it("filters by group with buttons; every document stays listed before scripts run", async () => {
+    await renderAt("/documents/");
+    const group = screen.getByRole("group", { name: translations.en["documents.filter"] });
+    const buttons = within(group).getAllByRole("button");
+    expect(buttons.map((b) => b.textContent)).toEqual([
+      translations.en["documents.stage.all"],
+      translations.en["documents.group.standard-forms"],
+      translations.en["documents.group.checklists"],
+    ]);
+    fireEvent.click(within(group).getByRole("button", { name: translations.en["documents.group.checklists"] }));
+    expect(within(group).getByRole("button", { name: translations.en["documents.group.checklists"] })).toHaveAttribute("aria-pressed", "true");
+    expect(within(document.getElementById("library")!).getAllByRole("listitem")).toHaveLength(1);
+    fireEvent.click(within(group).getByRole("button", { name: translations.en["documents.stage.all"] }));
+    expect(within(document.getElementById("library")!).getAllByRole("listitem")).toHaveLength(2);
+  });
+
+  it("shows a card in Russian with the request link, the English canonical and related documents", async () => {
     await renderAt("/ru/documents/nda-form/");
     expect(screen.getByRole("heading", { level: 1, name: "Тестовое NDA" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: translations.ru["documents.request"] })).toHaveAttribute(
-      "href",
-      "/ru/contact/?docs=nda-form",
-    );
-    expect(screen.getByText("Конфиденциальность")).toBeInTheDocument();
+    const requests = screen.getAllByRole("link", { name: translations.ru["documents.requestThis"] });
+    expect(new Set(requests.map((a) => a.getAttribute("href")))).toEqual(new Set(["/ru/contact/?docs=nda-form"]));
+    expect(screen.getByText(translations.ru["documents.languageNote"])).toBeInTheDocument();
+    expect([...document.querySelectorAll("main section[id]")].map((s) => s.id)).toEqual(["what", "when", "contents", "version", "related"]);
+    expect(document.getElementById("when")).toHaveTextContent(translations.ru["documents.stage.before-loi"]);
+    expect(within(document.querySelector("main")!).getByText("Конфиденциальность")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: translations.ru["documents.preview"] })).toBeNull();
     expect(screen.getByText(translations.ru["documents.disclaimer"])).toBeInTheDocument();
     expect(document.querySelector('a[href$=".pdf"]')).toBeNull();
+    expect(within(document.getElementById("related")!).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual([
+      "/ru/documents/check-one/",
+    ]);
+    await waitFor(() =>
+      expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute("href", "https://kpsglobal.id/documents/nda-form/"),
+    );
+    expect([...document.querySelectorAll('link[rel="alternate"][hreflang]')].map((l) => l.getAttribute("hreflang"))).not.toContain("ru");
   });
 
   it("announces the preview of a preview document until its pages are rendered", async () => {

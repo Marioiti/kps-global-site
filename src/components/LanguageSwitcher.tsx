@@ -30,10 +30,8 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ className, onNaviga
           hrefLang={lang.code}
           aria-current={language === lang.code ? 'true' : undefined}
           onClick={onNavigate}
-          className={`px-3 py-1.5 text-xs tracking-wider transition-all duration-300 ${
-            language === lang.code
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
+          className={`inline-flex min-h-[44px] items-center px-1 underline-offset-[6px] hover:underline ${
+            language === lang.code ? 'text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           {lang.label}

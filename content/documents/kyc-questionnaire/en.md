@@ -1,6 +1,7 @@
 ---
 title: "KYC Questionnaire"
 group: standard-forms
+stage: before-loi
 issuer: kps
 dealStep: "KYC, before the engagement"
 summary: "KYC form issued by KPS and completed by the counterparty: company, ownership, authorised signatory and source of funds, with sanctions, PEP and AML declarations."

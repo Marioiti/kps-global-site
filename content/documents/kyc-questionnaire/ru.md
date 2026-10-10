@@ -8,7 +8,7 @@ contents:
   - "Уполномоченный подписант"
   - "Источник средств"
   - "Декларации о санкциях, PEP и AML"
-draft: true
+draft: false
 reviewed: false
 ---
 

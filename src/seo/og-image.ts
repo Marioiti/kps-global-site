@@ -6,11 +6,11 @@ import { OG_SIZE } from '../content/preview';
 
 /**
  * Link-preview images: 1200 × 627 PNG per article (dist/og/) and the site-wide
- * dist/og-image.png (1200 × 630), with the title and the S2 lockup, rendered at build time.
+ * dist/og-image.png (1200 × 630), in design v3: the seal 合, the title, the name; rendered at build time.
  *
- * Fonts (woff, which satori reads; woff2 it does not): Manrope latin + cyrillic for
- * English and Russian, and for Chinese only the Noto Sans SC slices whose
- * unicode-range covers the characters of the text (@fontsource/noto-sans-sc,
+ * Fonts (woff, which satori reads; woff2 it does not): Spectral 500 for the title and the name,
+ * Golos Text 400/600 for the small lines, latin + cyrillic; for Chinese only the Noto Sans SC
+ * slices whose unicode-range covers the characters of the text (@fontsource/noto-sans-sc,
  * a build-time dependency).
  */
 
@@ -23,21 +23,22 @@ const h = (type: string, style: Record<string, unknown>, children?: unknown, ext
   props: { style, children, ...extra },
 });
 
-type Font = { name: string; data: Buffer; weight: 600 | 800; style: 'normal' };
+type Font = { name: string; data: Buffer; weight: 400 | 500 | 600 | 800; style: 'normal' };
 
 let fonts: Font[] | null = null;
 const loadFonts = (rootDir: string): Font[] => {
   if (fonts) return fonts;
-  const dir = path.join(rootDir, 'node_modules/@fontsource/manrope/files');
-  fonts = (['latin', 'cyrillic'] as const).flatMap((subset) =>
-    ([600, 800] as const).map((weight) => ({
-      // Distinct names per subset: satori falls back between families, not between faces of one family.
-      name: subset === 'latin' ? 'Manrope' : 'Manrope Cyrillic',
-      data: fs.readFileSync(path.join(dir, `manrope-${subset}-${weight}-normal.woff`)),
-      weight,
-      style: 'normal' as const,
-    })),
-  );
+  const file = (pkg: string, subset: string, weight: number) =>
+    fs.readFileSync(path.join(rootDir, `node_modules/@fontsource/${pkg}/files/${pkg}-${subset}-${weight}-normal.woff`));
+  // Distinct names per subset: satori falls back between families, not between faces of one family.
+  fonts = (['latin', 'cyrillic'] as const).flatMap((subset) => {
+    const suffix = subset === 'latin' ? '' : ' Cyrillic';
+    return [
+      { name: `Spectral${suffix}`, data: file('spectral', subset, 500), weight: 500 as const, style: 'normal' as const },
+      { name: `Golos${suffix}`, data: file('golos-text', subset, 400), weight: 400 as const, style: 'normal' as const },
+      { name: `Golos${suffix}`, data: file('golos-text', subset, 600), weight: 600 as const, style: 'normal' as const },
+    ];
+  });
   return fonts;
 };
 
@@ -84,32 +85,32 @@ const chineseFonts = (rootDir: string, text: string): Font[] => {
 export interface OgImageText {
   eyebrow: string;
   title: string;
-  /** Accessible name of the logo; the lockup itself carries the brand. */
+  /** The name under the title. */
   brand: string;
   site: string;
 }
 
-/** Brand palette: navy ground, white type, a vermilion marker, paper for secondary text. */
-const NAVY = '#16233F';
-const VERMILION = '#B3261E';
-const WHITE = '#FFFFFF';
-const PAPER_SOFT = 'rgba(246, 242, 234, 0.78)';
-const RULE = 'rgba(246, 242, 234, 0.22)';
+/** Design v3, light theme: paper ground, ink type, the vermilion seal. */
+const BG = '#FBFAF7';
+const INK = '#121A2B';
+const MUTED = '#5A6170';
+const RULE = '#D9D3C7';
 
-/** The white S2 lockup (viewBox 593.6 × 168) shown at the bottom left. */
-const LOCKUP_FILE = 'public/brand/kps-lockup-s2-white.svg';
-const LOCKUP_HEIGHT = 52;
-const LOCKUP_WIDTH = Math.round((LOCKUP_HEIGHT * 593.62) / 168);
+/** The seal: 合 in white on vermilion, as outlines (public/favicon.svg, scripts/make-icons.mjs). */
+const SEAL_FILE = 'public/favicon.svg';
+const SEAL_SIZE = 112;
 
 export async function renderOgImage(
   rootDir: string,
   text: OgImageText,
   size: { width: number; height: number } = { width: OG_WIDTH, height: OG_HEIGHT },
 ): Promise<Buffer> {
-  const lockup = `data:image/svg+xml;base64,${fs.readFileSync(path.join(rootDir, LOCKUP_FILE)).toString('base64')}`;
+  const seal = `data:image/svg+xml;base64,${fs.readFileSync(path.join(rootDir, SEAL_FILE)).toString('base64')}`;
   const titleSize = text.title.length > 90 ? 50 : text.title.length > 60 ? 58 : 66;
   const cjk = chineseFonts(rootDir, `${text.eyebrow}${text.title}`);
-  const families = ['Manrope', 'Manrope Cyrillic', ...new Set(cjk.map((font) => font.name))].join(', ');
+  const cjkFamilies = [...new Set(cjk.map((font) => font.name))];
+  const serif = ['Spectral', 'Spectral Cyrillic', ...cjkFamilies].join(', ');
+  const sans = ['Golos', 'Golos Cyrillic', ...cjkFamilies].join(', ');
 
   const tree = h(
     'div',
@@ -119,20 +120,17 @@ export async function renderOgImage(
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'space-between',
-      padding: '72px 96px',
-      backgroundColor: NAVY,
-      backgroundImage:
-        'linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)',
-      backgroundSize: '48px 48px',
-      fontFamily: families,
-      color: WHITE,
+      padding: '64px 88px',
+      backgroundColor: BG,
+      fontFamily: sans,
+      color: INK,
     },
     [
-      h('div', { display: 'flex', flexDirection: 'column' }, [
-        h('div', { color: PAPER_SOFT, fontSize: 21, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase' }, text.eyebrow),
-        h('div', { width: 68, height: 4, backgroundColor: VERMILION, marginTop: 22 }),
+      h('div', { display: 'flex', alignItems: 'center', gap: 32 }, [
+        h('img', { width: SEAL_SIZE, height: SEAL_SIZE }, undefined, { src: seal, alt: '', width: SEAL_SIZE, height: SEAL_SIZE }),
+        h('div', { color: MUTED, fontSize: 24, fontWeight: 400 }, text.eyebrow),
       ]),
-      h('div', { display: 'flex', fontSize: titleSize, fontWeight: 800, lineHeight: 1.12, letterSpacing: -1, maxWidth: 1000 }, text.title),
+      h('div', { display: 'flex', fontFamily: serif, fontSize: titleSize, fontWeight: 500, lineHeight: 1.1, maxWidth: 1000 }, text.title),
       h(
         'div',
         {
@@ -140,16 +138,11 @@ export async function renderOgImage(
           alignItems: 'center',
           justifyContent: 'space-between',
           borderTop: `1px solid ${RULE}`,
-          paddingTop: 26,
+          paddingTop: 24,
         },
         [
-          h('img', { width: LOCKUP_WIDTH, height: LOCKUP_HEIGHT }, undefined, {
-            src: lockup,
-            alt: text.brand,
-            width: LOCKUP_WIDTH,
-            height: LOCKUP_HEIGHT,
-          }),
-          h('div', { fontSize: 22, fontWeight: 600, color: PAPER_SOFT }, text.site),
+          h('div', { fontFamily: serif, fontSize: 30, fontWeight: 500 }, text.brand),
+          h('div', { fontSize: 22, fontWeight: 400, color: MUTED }, text.site),
         ],
       ),
     ],

@@ -1,110 +1,210 @@
-import React, { useState, useEffect } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect, useId, useRef, useState } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { ArrowRight, ChevronDown, Menu } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { localizePath } from '@/i18n/locales';
+import { localizePath, stripLanguagePrefix } from '@/i18n/locales';
 import { canon } from '@/data/canon';
-import { sectionHasItems } from '@/content';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
-import { ThemeChoice, ThemeToggle } from '@/components/ThemeToggle';
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
+import Seal from '@/components/v3/Seal';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { focusRing, linkClass, SERVICES, type NavItem } from '@/components/nav-shared';
 
-const NAV_ITEMS = [
-  { key: 'nav.services', path: '/services/' },
+const loadMobileMenu = () => import('@/components/MobileMenu');
+const MobileMenu = lazy(loadMobileMenu);
+
+/** Links after "Services"; sections without published items stay out. */
+const NAV_ITEMS: NavItem[] = [
   { key: 'nav.commodities', path: '/commodities/' },
-  { key: 'nav.mandates', path: '/mandates/' },
   { key: 'nav.documents', path: '/documents/' },
-  { key: 'nav.insights', path: '/insights/' },
-  { key: 'nav.news', path: '/news/' },
   { key: 'nav.about', path: '/about/' },
-  { key: 'nav.contact', path: '/contact/' },
 ];
 
-const linkClass = (isActive: boolean) =>
-  `text-sm tracking-wider uppercase whitespace-nowrap transition-colors duration-300 ${
-    isActive ? 'text-accent font-semibold' : 'text-muted-foreground hover:text-primary'
-  }`;
+/**
+ * "Services" disclosure: Enter, Space or the arrows open it and move focus through the
+ * items, Escape closes it and returns focus to the button, a click outside closes it.
+ */
+const ServicesMenu: React.FC = () => {
+  const { t, language } = useLanguage();
+  const { pathname } = useLocation();
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
+  const wrapper = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const items = useRef<(HTMLAnchorElement | null)[]>([]);
+  const pendingFocus = useRef<number | null>(null);
+  const active = stripLanguagePrefix(pathname).startsWith('/services/');
+
+  const focusItem = (index: number) => {
+    const list = items.current.filter(Boolean) as HTMLAnchorElement[];
+    if (list.length) list[(index + list.length) % list.length].focus();
+  };
+
+  useEffect(() => setOpen(false), [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (pendingFocus.current !== null) {
+      focusItem(pendingFocus.current);
+      pendingFocus.current = null;
+    }
+    const onPointer = (event: MouseEvent) => {
+      if (!wrapper.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onPointer);
+    return () => document.removeEventListener('mousedown', onPointer);
+  }, [open]);
+
+  const openAt = (index: number) => {
+    if (open) focusItem(index);
+    else {
+      pendingFocus.current = index;
+      setOpen(true);
+    }
+  };
+
+  const onButtonKey = (event: React.KeyboardEvent) => {
+    if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openAt(0);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      openAt(-1);
+    } else if (event.key === 'Escape') {
+      setOpen(false);
+    }
+  };
+
+  const onPanelKey = (event: React.KeyboardEvent) => {
+    const list = items.current.filter(Boolean) as HTMLAnchorElement[];
+    const index = list.indexOf(document.activeElement as HTMLAnchorElement);
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      focusItem(index + 1);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      focusItem(index - 1);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      focusItem(0);
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      focusItem(-1);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      setOpen(false);
+      button.current?.focus();
+    } else if (event.key === 'Tab') {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div ref={wrapper} className="relative">
+      <button
+        ref={button}
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        aria-current={active ? 'true' : undefined}
+        onClick={() => setOpen((value) => !value)}
+        onKeyDown={onButtonKey}
+        className={`inline-flex items-center gap-1 ${linkClass(active)}`}
+      >
+        {t('nav.services')}
+        <ChevronDown size={14} aria-hidden="true" className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+      <div
+        id={panelId}
+        hidden={!open}
+        onKeyDown={onPanelKey}
+        className="absolute left-0 top-full mt-3 w-[26rem] border border-border bg-popover text-popover-foreground rounded-sm p-2"
+      >
+        <ul aria-label={t('nav.servicesMenu')}>
+          {SERVICES.map((item, i) => (
+            <li key={item.key}>
+              <Link
+                ref={(el) => (items.current[i] = el)}
+                to={localizePath(item.path, language)}
+                className={`block px-4 py-3 rounded-sm hover:bg-muted ${focusRing}`}
+              >
+                <span className="block text-sm font-semibold text-foreground">{t(`${item.key}.title`)}</span>
+                <span className="block text-xs text-muted-foreground mt-0.5">{t(`${item.key}.desc`)}</span>
+              </Link>
+            </li>
+          ))}
+          <li className="border-t border-border mt-1 pt-1">
+            <Link
+              ref={(el) => (items.current[SERVICES.length] = el)}
+              to={localizePath('/services/', language)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-sm text-sm font-medium text-primary hover:bg-muted ${focusRing}`}
+            >
+              {t('menu.allServices')}
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+};
 
 const Navbar: React.FC = () => {
   const { t, language } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  // Kept mounted after the first opening, so closing can animate.
+  const menuUsed = useRef(false);
+  if (mobileOpen) menuUsed.current = true;
+  const items = NAV_ITEMS;
+  const contactPath = localizePath('/contact/', language);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  const links = (onNavigate?: () => void) =>
-    NAV_ITEMS.filter((item) => sectionHasItems(item.path)).map((item) => (
-      <NavLink
-        key={item.key}
-        to={localizePath(item.path, language)}
-        onClick={onNavigate}
-        className={({ isActive }) => linkClass(isActive)}
-      >
-        {t(item.key)}
-      </NavLink>
-    ));
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b transition-all duration-300 ${
-        scrolled
-          ? 'bg-background/90 border-border/60 shadow-sm'
-          : 'bg-background/60 border-transparent'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div
-          className={`flex items-center justify-between gap-6 transition-all duration-300 ${
-            scrolled ? 'h-14 lg:h-16' : 'h-16 lg:h-20'
-          }`}
-        >
-          {/* Logo */}
-          <Link to={localizePath('/', language)} className="flex items-center group shrink-0">
-            {/* Mark alone on narrow screens, the full lockup from sm up; white versions in the dark theme. */}
-            <span className="sm:hidden transition-transform duration-500 group-hover:scale-105">
-              <img src="/brand/kps-mark-s2-navy.svg" alt={canon.brand} width={40} height={40} className="h-10 w-10 dark:hidden" />
-              <img src="/brand/kps-mark-s2-white.svg" alt={canon.brand} width={40} height={40} className="hidden h-10 w-10 dark:block" />
-            </span>
-            <span className="hidden sm:block transition-transform duration-500 group-hover:scale-105">
-              <img src="/brand/kps-lockup-s2-navy.svg" alt={canon.brand} width={170} height={48} className="h-12 w-auto dark:hidden" />
-              <img src="/brand/kps-lockup-s2-white.svg" alt={canon.brand} width={170} height={48} className="hidden h-12 w-auto dark:block" />
-            </span>
+    <header className="border-b border-border">
+      <div className="page-container flex items-center gap-x-8 gap-y-4 py-4 lg:py-[22px]">
+        <Link to={localizePath('/', language)} className="flex items-center gap-3 mr-auto rounded-sm">
+          <Seal size={36} />
+          <span className="font-display text-[19px] sm:text-[21px] font-medium tracking-[0.01em] text-foreground">{canon.brand}</span>
+        </Link>
+
+        <nav aria-label={t('nav.main')} className="hidden lg:flex items-center gap-6 text-base">
+          <ServicesMenu />
+          {items.map((item) => (
+            <NavLink key={item.key} to={localizePath(item.path, language)} className={({ isActive }) => linkClass(isActive)}>
+              {t(item.key)}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="hidden lg:flex items-center gap-3.5 shrink-0">
+          <LanguageSwitcher className="flex items-center gap-3.5 text-sm" />
+          <ThemeToggle />
+          <Link to={`${contactPath}?intent=proposal`} className="btn-ink">
+            {t('cta.proposal')}
           </Link>
-
-          {/* Desktop nav */}
-          <div className="hidden xl:flex items-center gap-5">{links()}</div>
-
-          {/* Language and theme */}
-          <div className="hidden xl:flex items-center gap-2 shrink-0">
-            <LanguageSwitcher className="flex items-center gap-1 border border-border rounded-sm" />
-            <ThemeToggle />
-          </div>
-
-          {/* Mobile menu: slide-out panel */}
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <button className="xl:hidden p-2 text-foreground" aria-label={t('nav.openMenu')}>
-                <Menu size={20} />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="right" className="flex flex-col gap-0 pt-16">
-              <SheetTitle className="sr-only">{t('nav.menuTitle')}</SheetTitle>
-              <div className="flex flex-col gap-5">{links(() => setMobileOpen(false))}</div>
-              <LanguageSwitcher
-                className="flex items-center gap-1 border border-border rounded-sm w-fit mt-10"
-                onNavigate={() => setMobileOpen(false)}
-              />
-              <ThemeChoice className="mt-4" />
-            </SheetContent>
-          </Sheet>
         </div>
+
+        {/* Mobile: the full-screen menu loads on first use, so it stays out of the main script. */}
+        <button
+          ref={menuButton}
+          type="button"
+          className="lg:hidden inline-flex h-11 w-11 items-center justify-center rounded-full border border-border text-foreground"
+          aria-label={t('nav.openMenu')}
+          aria-haspopup="dialog"
+          aria-expanded={mobileOpen}
+          onPointerEnter={loadMobileMenu}
+          onFocus={loadMobileMenu}
+          onClick={() => setMobileOpen(true)}
+        >
+          <Menu size={20} aria-hidden="true" />
+        </button>
+        {(mobileOpen || menuUsed.current) && (
+          <Suspense fallback={null}>
+            <MobileMenu open={mobileOpen} onOpenChange={setMobileOpen} items={items} contactPath={contactPath} returnFocus={menuButton} />
+          </Suspense>
+        )}
       </div>
-    </nav>
+    </header>
   );
 };
 

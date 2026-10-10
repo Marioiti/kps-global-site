@@ -1,6 +1,7 @@
 ---
 title: "Checklist: Before Payment"
 group: checklists
+stage: before-payment
 issuer: kps
 dealStep: "Before Payment"
 summary: "What has to be in place before money moves. The same for every commodity."

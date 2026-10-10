@@ -1,6 +1,7 @@
 ---
 title: "Offer Check"
 group: services
+stage: services
 issuer: kps
 dealStep: "When an offer arrives, before replying"
 summary: "One supplier offer reviewed, with a written verdict: real, fixable or walk away."

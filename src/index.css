@@ -3,103 +3,86 @@
 @tailwind utilities;
 
 @layer base {
+  /* Design v3 "Seal and dossier": paper whites, ink, one vermilion. No shadows, no gradients. */
   :root {
-    /* Brand: navy #16233F, vermilion #B3261E (accents only), paper #F6F2EA, white. */
-    --background: 0 0% 100%;
-    --foreground: 221 48% 16.7%;
+    --background: 45 33.3% 97.6%; /* bg #FBFAF7 */
+    --foreground: 221 41% 12%; /* ink #121A2B */
+    --body: 221 22.1% 22.2%; /* body text #2C3445 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 221 48% 16.7%;
-
+    --card: 0 0% 100%; /* paper #FFFFFF: sheets and forms */
+    --card-foreground: 221 41% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 221 48% 16.7%;
+    --popover-foreground: 221 41% 12%;
 
-    --primary: 221 48% 16.7%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 221 41% 12%;
+    --primary-foreground: 45 33.3% 97.6%;
 
-    --secondary: 40 24% 91%;
-    --secondary-foreground: 221 48% 16.7%;
+    --secondary: 42 29.4% 93.3%;
+    --secondary-foreground: 221 41% 12%;
 
-    --muted: 40 24% 93%;
-    --muted-foreground: 221 14% 36%;
+    --muted: 42 29.4% 93.3%;
+    --muted-foreground: 221 10.9% 39.6%; /* muted #5A6170 */
 
-    /* Vermilion: markers, step numbers, the active menu item, the seal. */
-    --accent: 3 71% 41%;
+    /* Vermilion: the seal, the numerals, stamps and the main action. */
+    --accent: 3 71.3% 41%; /* #B3261E */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 3 71.3% 41%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 38 18% 85%;
-    --input: 38 18% 85%;
-    --ring: 221 48% 16.7%;
+    --border: 40 19.1% 81.6%; /* rule #D9D3C7 */
+    --rule-soft: 40 24% 90.2%; /* #ECE8E0 */
+    --input: 39 8% 51%; /* field #8C8578 */
+    --ring: 221 41% 12%;
 
-    --radius: 0.125rem;
+    --radius: 0.1875rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 221 48% 16.7%;
-    --sidebar-primary: 221 48% 16.7%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 24% 93%;
-    --sidebar-accent-foreground: 221 48% 16.7%;
-    --sidebar-border: 38 18% 85%;
-    --sidebar-ring: 221 48% 16.7%;
+    /* Section band #F3F0E9 */
+    --surface: 42 29.4% 93.3%;
 
-    /* Section background */
-    --paper: 40 40% 94.1%;
-    --surface: var(--paper);
+    /* Check results: pass, fail, open. Always with the word, not colour alone. */
+    --status-green: 143 56.2% 26.9%;
+    --status-red: 3 71.3% 41%;
+    --status-amber: 36 100% 27.1%;
 
-    /* Footer and the motto strip: navy in both themes, its own shade in the dark one. */
-    --band: 221 48% 16.7%;
-    --band-foreground: 0 0% 100%;
-
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Golos Text', system-ui, -apple-system, sans-serif;
   }
 
-  /* Dark theme: night navy, paper text, a lighter vermilion for markers and links. */
   .dark {
-    --background: 220 46% 10.2%;
-    --foreground: 39 32% 89.6%;
+    --background: 219 31.8% 8.6%; /* #0F141D */
+    --foreground: 40 32.1% 89%; /* #ECE6DA */
+    --body: 40 13.5% 78.2%; /* #CFCAC0 */
 
-    --card: 219 46% 14.5%;
-    --card-foreground: 39 32% 89.6%;
+    --card: 216 29.4% 13.3%; /* #18202C */
+    --card-foreground: 40 32.1% 89%;
+    --popover: 216 29.4% 13.3%;
+    --popover-foreground: 40 32.1% 89%;
 
-    --popover: 219 46% 14.5%;
-    --popover-foreground: 39 32% 89.6%;
+    --primary: 40 32.1% 89%;
+    --primary-foreground: 219 31.8% 8.6%;
 
-    --primary: 40 40% 94.1%;
-    --primary-foreground: 221 48% 16.7%;
+    --secondary: 219 28.8% 11.6%;
+    --secondary-foreground: 40 32.1% 89%;
 
-    --secondary: 219 42% 18.8%;
-    --secondary-foreground: 39 32% 89.6%;
+    --muted: 219 28.8% 11.6%;
+    --muted-foreground: 220 10.8% 67.5%; /* #A3A9B5 */
 
-    --muted: 219 42% 17.6%;
-    --muted-foreground: 221 17% 71.2%;
+    --accent: 7 71.7% 59.8%; /* #E2614F */
+    --accent-foreground: 219 31.8% 8.6%;
 
-    --accent: 7 72% 62.4%;
-    --accent-foreground: 220 46% 10.2%;
+    --destructive: 7 71.7% 59.8%;
+    --destructive-foreground: 219 31.8% 8.6%;
 
-    --destructive: 0 72% 60%;
-    --destructive-foreground: 220 46% 10.2%;
+    --border: 219 20.7% 21.8%; /* #2C3443 */
+    --rule-soft: 219 22.2% 17.6%; /* #232A37 */
+    --input: 219 13.7% 41.4%; /* #5B6578 */
+    --ring: 40 32.1% 89%;
 
-    --border: 220 34% 22.5%;
-    --input: 220 34% 22.5%;
-    --ring: 40 40% 94.1%;
+    --surface: 219 28.8% 11.6%; /* #151B26 */
 
-    --sidebar-background: 220 46% 10.2%;
-    --sidebar-foreground: 39 32% 89.6%;
-    --sidebar-primary: 40 40% 94.1%;
-    --sidebar-primary-foreground: 221 48% 16.7%;
-    --sidebar-accent: 219 42% 17.6%;
-    --sidebar-accent-foreground: 39 32% 89.6%;
-    --sidebar-border: 220 34% 22.5%;
-    --sidebar-ring: 40 40% 94.1%;
-
-    --paper: 220 46% 12.9%;
-    --surface: var(--paper);
-
-    --band: 221 48% 16.7%;
-    --band-foreground: 39 32% 89.6%;
+    --status-green: 141 41.9% 60.2%;
+    --status-red: 7 71.7% 59.8%;
+    --status-amber: 35 68.4% 61.6%;
   }
 }
 
@@ -110,39 +93,84 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-size: 18px;
+    line-height: 1.65;
+  }
+
+  /* One keyboard focus style for links, buttons and summaries; components may draw their own ring. */
+  a:focus-visible,
+  button:focus-visible,
+  summary:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Manrope', 'Inter', system-ui, sans-serif;
-    font-weight: 700;
-    letter-spacing: -0.021em;
+    font-family: 'Spectral', Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
   }
 
-  /* Chinese text support */
+  /* Latin in Spectral and Golos; Chinese characters fall through to Noto Sans SC on /zh/ pages. */
   [lang="zh"] h1, [lang="zh"] h2, [lang="zh"] h3, [lang="zh"] h4, [lang="zh"] h5, [lang="zh"] h6 {
-    font-family: 'Noto Sans SC Variable', 'Noto Sans SC', 'Manrope', sans-serif;
-    font-weight: 700;
+    font-family: 'Spectral', 'Noto Sans SC Variable', 'Noto Sans SC', serif;
     letter-spacing: normal;
   }
 
   [lang="zh"] {
-    font-family: 'Noto Sans SC Variable', 'Noto Sans SC', 'Inter', sans-serif;
+    font-family: 'Golos Text', 'Noto Sans SC Variable', 'Noto Sans SC', sans-serif;
+  }
+}
+
+/* Layout and the shared pieces of design v3: rules instead of cards, the seal, numerals and stamps. */
+@layer components {
+  .page-container {
+    @apply max-w-[1180px] mx-auto px-6 md:px-8;
+  }
+
+  .section-y {
+    @apply py-14 md:py-20;
+  }
+
+  .measure {
+    max-width: 65ch;
+  }
+
+  /* Seal glyphs: the Noto Serif SC subset with the characters of the seal, numerals and stamps. */
+  .font-seal {
+    font-family: 'KPS Seal', 'Noto Serif SC', 'Songti SC', serif;
+  }
+
+  .h1-v3 {
+    @apply font-display text-[40px] md:text-[58px] lg:text-[64px] leading-[1.04] text-foreground;
+  }
+
+  .h2-v3 {
+    @apply font-display text-[30px] md:text-[40px] leading-[1.15] text-foreground;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center bg-accent text-accent-foreground px-6 py-4 text-base font-medium transition-opacity hover:opacity-90;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center border border-foreground text-foreground px-6 py-[15px] text-base font-medium transition-colors hover:bg-foreground hover:text-background;
+  }
+
+  .btn-ink {
+    @apply inline-flex items-center justify-center bg-foreground text-background px-[18px] py-3 text-[15px] font-medium transition-opacity hover:opacity-90;
+  }
+
+  .link-v3 {
+    @apply underline underline-offset-[5px] decoration-1 hover:decoration-2;
   }
 }
 
 @layer utilities {
   .bg-surface {
     background-color: hsl(var(--surface));
-  }
-
-  .glow-primary {
-    box-shadow: 0 4px 24px -6px hsl(var(--primary) / 0.15);
-  }
-
-  /* Hairline between sections */
-  .line-rule {
-    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.18), transparent);
-    height: 1px;
   }
 }
 
@@ -156,7 +184,7 @@ html {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: hsl(var(--paper));
+  background: hsl(var(--surface));
 }
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--border));

@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useCallback, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Head } from 'vite-react-ssg';
 import { translations, interpolate, Language, TranslationVars } from '@/i18n/translations';
 import { getLanguageFromPath } from '@/i18n/locales';
-import { canon } from '@/data/canon';
+import { canon, formatPrice } from '@/data/canon';
 import { feedPath } from '@/seo/feed';
 
 interface LanguageContextType {
@@ -12,15 +12,38 @@ interface LanguageContextType {
   t: (key: string, vars?: TranslationVars) => string;
 }
 
-const CANON_VARS: TranslationVars = {
+const CANON_VARS = (language: Language): TranslationVars => ({
   brand: canon.brand,
   legalName: canon.legal.name,
   email: canon.contacts.email,
-};
+  // The only prices on the site, with their terms (see canon.products).
+  offerPrice: formatPrice(canon.products.offerCheck.priceFrom, language),
+  offerHours: canon.products.offerCheck.turnaroundHours,
+  healthPrice: formatPrice(canon.products.dealHealthCheck.priceFrom, language),
+  healthDays: canon.products.dealHealthCheck.turnaroundBusinessDays,
+  creditDays: canon.products.dealHealthCheck.creditDays,
+  kycDays: canon.products.kycCheck.turnaroundBusinessDays,
+  kycPrice: canon.products.kycCheck.priceFrom ? formatPrice(canon.products.kycCheck.priceFrom, language) : '',
+  cooMinMonths: canon.products.fractionalCoo.minMonths,
+  cooDays: canon.products.fractionalCoo.daysPerWeek,
+  cooNotice: canon.products.fractionalCoo.noticeDays,
+});
 
 // Chinese webfont: self-hosted and split by unicode-range (see `notoSansSc` in
-// vite.config.ts); linked on /zh/ pages only.
+// vite.config.ts); used on /zh/ pages only. Prerendered /zh/ pages link it after the first
+// paint (src/content/page-head.ts); this adds it when the visitor moves to /zh/ in the browser.
 const NOTO_SANS_SC_URL = '/fonts/noto-sans-sc/index.css';
+const NOTO_SANS_SC_ID = 'noto-sans-sc';
+
+const useChineseFont = (language: Language) =>
+  useEffect(() => {
+    if (language !== 'zh' || document.getElementById(NOTO_SANS_SC_ID)) return;
+    const link = document.createElement('link');
+    link.id = NOTO_SANS_SC_ID;
+    link.rel = 'stylesheet';
+    link.href = NOTO_SANS_SC_URL;
+    document.head.appendChild(link);
+  }, [language]);
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
@@ -32,17 +55,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const t = useCallback(
     (key: string, vars?: TranslationVars): string =>
-      interpolate(translations[language][key] || key, { ...CANON_VARS, ...vars }),
+      interpolate(translations[language][key] || key, { ...CANON_VARS(language), ...vars }),
     [language],
   );
 
   const value = useMemo(() => ({ language, t }), [language, t]);
+  useChineseFont(language);
 
   return (
     <LanguageContext.Provider value={value}>
       <Head htmlAttributes={{ lang: language }}>
         <link rel="alternate" type="application/rss+xml" title={t('feed.title')} href={feedPath(language)} />
-        {language === 'zh' && <link rel="stylesheet" href={NOTO_SANS_SC_URL} />}
       </Head>
       <div lang={language}>{children}</div>
     </LanguageContext.Provider>

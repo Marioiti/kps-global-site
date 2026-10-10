@@ -65,7 +65,7 @@ export function contentPlugin(rootDir: string): Plugin {
             Object.fromEntries(
               Object.entries(pages).map(([language, page]) => [
                 language,
-                { title: page.title, description: page.description, summary: page.summary },
+                { title: page.title, description: page.description, summary: page.summary, grade: page.grade, basisShort: page.basisShort },
               ]),
             ),
           ]),
@@ -75,6 +75,7 @@ export function contentPlugin(rootDir: string): Plugin {
           `export const entries = ${JSON.stringify(entries)};`,
           `export const commodities = ${JSON.stringify(commodities)};`,
           `export const mandates = ${JSON.stringify(content.mandates)};`,
+          `export const cases = ${JSON.stringify(content.cases)};`,
           `export const bodies = {\n${loaders.join('\n')}\n};`,
           '',
         ].join('\n');

@@ -1,6 +1,7 @@
 ---
 title: "JWA — Joint Working Agreement"
 group: engagement
+stage: contracts
 issuer: kps
 dealStep: "When another intermediary works on the same deal"
 summary: "Agreement with another intermediary on the same deal, usually the buyer's agent: how the agreed commission is shared. Not a partnership and not a joint venture."

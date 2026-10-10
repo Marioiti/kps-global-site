@@ -12,6 +12,8 @@ route:
   - { title: "Route two", detail: "Detail two" }
   - { title: "Route three", detail: "Detail three" }
 stalls: ["Stall one", "Stall two"]
+breaks: "Fixture breaks aluminium zh"
+basisShort: "Fixture basis aluminium"
 ---
 
 Fixture body for aluminium in zh, see [contact](/contact/).

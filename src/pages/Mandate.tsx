@@ -1,13 +1,11 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
-import PageHeader from '@/components/PageHeader';
 import PageSEO from '@/components/PageSEO';
-import SectionHeader from '@/components/SectionHeader';
-import FeatureGrid from '@/components/FeatureGrid';
-import ContactSection from '@/components/ContactSection';
-import { MandateStatus } from '@/components/MandateCard';
-import Reveal from '@/hooks/use-reveal';
+import ContactForm from '@/components/ContactForm';
+import GlyphHero from '@/components/v3/GlyphHero';
+import DossierSection from '@/components/v3/DossierSection';
+import { statusClass } from '@/components/v3/status';
+import { COMMODITY_GLYPHS } from '@/components/v3/glyphs';
 import NotFound from '@/pages/NotFound';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { canon } from '@/data/canon';
@@ -51,67 +49,57 @@ const Mandate: React.FC = () => {
           { name: mandate.id, path },
         ]}
       />
-      <PageHeader label={`${t('mandate.label')} ${mandate.id}`} title={t('mandate.cardTitle', { side, commodity })} lead={description}>
-        <div className="mt-8">
-          <MandateStatus status={mandate.status} />
-        </div>
-      </PageHeader>
+      <GlyphHero
+        glyph={COMMODITY_GLYPHS[mandate.commodity]}
+        crumb={{ label: t('nav.mandates'), path: '/mandates/' }}
+        current={mandate.id}
+        title={t('mandate.cardTitle', { side, commodity })}
+        lead={
+          <>
+            <p>{description}</p>
+            <p className={`text-[15px] font-semibold ${statusClass(mandate.status)}`}>{t(`mandate.status.${mandate.status}`)}</p>
+          </>
+        }
+      />
 
-      <section id="card" className="py-20 relative">
-        <div className="max-w-5xl mx-auto px-6 lg:px-8">
-          <Link
-            to={localizePath('/mandates/', language)}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-10"
-          >
-            <ArrowLeft size={16} />
-            {t('mandate.back')}
+      <DossierSection id="card" n={1}>
+        <h2 className="h2-v3 mb-5">{t('mandate.cardHeading')}</h2>
+        <dl className={`max-w-3xl border-b border-border text-base ${mandate.status === 'closed' ? 'text-muted-foreground' : ''}`}>
+          {[...fields, ['mandate.field.status', t(`mandate.status.${mandate.status}`)]].map(([labelKey, value]) => (
+            <div key={labelKey} className="grid sm:grid-cols-[240px_minmax(0,1fr)] gap-1 sm:gap-6 py-3 border-t border-border">
+              <dt className="text-muted-foreground">{t(labelKey)}</dt>
+              <dd className="text-foreground tabular-nums">{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-6 text-body measure">{t('mandate.role')}</p>
+      </DossierSection>
+
+      <DossierSection id="process" n={2} band>
+        <h2 className="h2-v3 mb-[26px]">{t('mandate.processTitle')}</h2>
+        <ol className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0">
+          {STEPS.map((n, i) => (
+            <li key={n} className={`pt-[18px] lg:pr-5 border-t-[3px] ${i < 2 ? 'border-accent' : 'border-foreground'}`}>
+              <h3 className="font-sans text-lg font-semibold text-foreground">{t(`mandate.step${n}.title`)}</h3>
+              <p className="text-[15px] text-body">{t(`mandate.step${n}.desc`)}</p>
+            </li>
+          ))}
+        </ol>
+        {sectionHasItems('/procedures/') && (
+          <Link to={localizePath('/procedures/', language)} className="link-v3 inline-block mt-8 text-base">
+            {t('mandate.proceduresLink')}
           </Link>
-          <Reveal className={mandate.status === 'closed' ? 'opacity-70' : ''}>
-            <dl className="border border-border/60 rounded-sm divide-y divide-border/40 bg-background">
-              {fields.map(([labelKey, value]) => (
-                <div key={labelKey} className="grid sm:grid-cols-[220px_1fr] gap-1 sm:gap-6 px-6 py-4">
-                  <dt className="text-xs tracking-[0.15em] uppercase text-muted-foreground pt-0.5">{t(labelKey)}</dt>
-                  <dd className="text-sm text-foreground">{value}</dd>
-                </div>
-              ))}
-              <div className="grid sm:grid-cols-[220px_1fr] gap-1 sm:gap-6 px-6 py-4">
-                <dt className="text-xs tracking-[0.15em] uppercase text-muted-foreground pt-0.5">{t('mandate.field.status')}</dt>
-                <dd>
-                  <MandateStatus status={mandate.status} />
-                </dd>
-              </div>
-            </dl>
-          </Reveal>
-          <p className="mt-8 text-foreground/80 leading-relaxed border-l-2 border-accent pl-4">{t('mandate.role')}</p>
-        </div>
-      </section>
-
-      <section id="process" className="py-24 bg-surface relative">
-        <div className="absolute top-0 left-0 right-0 line-rule" />
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <SectionHeader label={t('mandate.processLabel')} title={t('mandate.processTitle')} className="mb-12" />
-          <FeatureGrid
-            items={STEPS.map((n) => ({ title: t(`mandate.step${n}.title`), desc: t(`mandate.step${n}.desc`) }))}
-          />
-          {sectionHasItems('/procedures/') && (
-            <Link
-              to={localizePath('/procedures/', language)}
-              className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-primary/80 hover:text-primary underline-offset-4 hover:underline"
-            >
-              {t('mandate.proceduresLink')}
-              <ArrowRight size={14} />
-            </Link>
-          )}
-        </div>
-      </section>
+        )}
+      </DossierSection>
 
       {mandate.status !== 'closed' && (
-        <section id="request" className="pt-24 relative">
-          <div className="max-w-2xl mx-auto px-6 lg:px-8">
-            <SectionHeader label={t('mandate.label')} title={t('mandate.requestTitle')} subtitle={t('mandate.requestSubtitle')} className="mb-0" />
+        <DossierSection id="request" n={3}>
+          <h2 className="h2-v3 mb-3">{t('mandate.requestTitle')}</h2>
+          <p className="text-body mb-8 measure">{t('mandate.requestSubtitle')}</p>
+          <div className="max-w-2xl bg-card border border-border p-6 md:p-9">
+            <ContactForm regarding={t('contact.regardingMandate', { id: mandate.id })} need="deal-structuring" />
           </div>
-          <ContactSection heading={false} topic={mandate.id} commodity={mandate.commodity} />
-        </section>
+        </DossierSection>
       )}
     </>
   );

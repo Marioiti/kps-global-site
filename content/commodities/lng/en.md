@@ -30,6 +30,19 @@ stalls:
   - "The seller's forms are filled in incompletely, and the file comes back for corrections."
   - "The money flow or the corporate structure raises questions at the bank after the contract is drafted instead of before."
   - "The offer's validity runs out while the parties argue about the price."
+breaks: "Deals stall when the buyer negotiates through an intermediary with no line to the seller's supply team, or when the bank questions the money flow after the contract is drafted."
+basisShort: "Basis agreed in the contract"
+grade: "Quality set by the SPA and the receiving terminal"
+spec:
+  - parameter: "Gross heating value (range)"
+  - parameter: "Wobbe index (range)"
+  - parameter: "Methane (min)"
+  - parameter: "Nitrogen (max)"
+  - parameter: "Heavier hydrocarbons C2+/C4+ (max)"
+  - parameter: "H2S (max)"
+  - parameter: "Total sulphur (max)"
+  - parameter: "Mercury (max)"
+specNote: "Set by the SPA and the receiving terminal's gas-quality rules."
 ---
 
 An LNG buyer usually arrives with offers from intermediaries and a simple aim: to talk to the producer, not to the fifth link in a chain. We work on the buy side, on a retainer. We take the buyer's position to the people at the seller who are responsible for supply before negotiations begin; the parties then negotiate the final terms themselves.

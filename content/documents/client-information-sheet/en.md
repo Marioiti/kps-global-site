@@ -1,6 +1,7 @@
 ---
 title: "KPS Client Information Sheet"
 group: counterparty-pack
+stage: before-loi
 issuer: kps
 dealStep: "KYC, before an NDA or a contract"
 summary: "A short information sheet on PT KPS Global Solutions for the counterparty's KYC: company identification, registration and the authorised signatory."

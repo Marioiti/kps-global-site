@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import PageHeader from '@/components/PageHeader';
+import GlyphHero from '@/components/v3/GlyphHero';
+import MandateRows from '@/components/v3/MandateRows';
 import PageSEO from '@/components/PageSEO';
 import SEO from '@/components/SEO';
-import MandateCard from '@/components/MandateCard';
-import ContactCta from '@/components/ContactCta';
+import FinalCta from '@/components/home/FinalCta';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { chipClass, chipLabelClass } from '@/components/filter-chip';
 import { canon } from '@/data/canon';
 import { getMandates } from '@/content';
 
@@ -13,12 +14,6 @@ const SIDES = ['supply', 'demand'] as const;
 const STATUSES = ['open', 'in-work', 'closed'] as const;
 type FilterKey = 'commodity' | 'side' | 'status';
 
-const chipClass = (active: boolean) =>
-  `px-3 py-1.5 text-sm border rounded-sm transition-colors duration-300 ${
-    active
-      ? 'bg-primary text-primary-foreground border-primary'
-      : 'bg-background text-foreground/80 border-border hover:border-primary/40'
-  }`;
 
 /** /mandates/: filters by commodity, side and status (kept in the address); closed mandates last and muted. */
 const Mandates: React.FC = () => {
@@ -68,15 +63,15 @@ const Mandates: React.FC = () => {
       ) : (
         <SEO title={t('seo.titleSuffix', { title })} description={t('seo.mandates.description')} noindex />
       )}
-      <PageHeader label={title} title={title} lead={all.length ? t('mandates.lead') : t('mandates.empty')} />
+      <GlyphHero title={title} lead={<p>{all.length ? t('mandates.lead') : t('mandates.empty')}</p>} />
 
       {all.length > 0 && (
-        <section className="py-20 relative">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <div className="space-y-4 mb-12">
+        <section className="border-t border-border">
+          <div className="page-container section-y">
+            <div className="space-y-4 mb-10">
               {groups.map((group) => (
                 <div key={group.key} className="flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] tracking-[0.28em] uppercase text-muted-foreground font-semibold w-28">
+                  <span className={chipLabelClass}>
                     {group.label}
                   </span>
                   <button type="button" className={chipClass(!filters[group.key])} onClick={() => update(group.key, null)}>
@@ -98,17 +93,13 @@ const Mandates: React.FC = () => {
             </div>
 
             {shown.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {shown.map((mandate) => (
-                  <MandateCard key={mandate.slug} mandate={mandate} />
-                ))}
-              </div>
+              <MandateRows mandates={shown} label={title} />
             ) : (
               <p className="text-muted-foreground">
                 {t('mandates.noMatches')}{' '}
                 <button
                   type="button"
-                  className="text-primary underline underline-offset-4"
+                  className="link-v3"
                   onClick={() => setSearchParams(new URLSearchParams(), { replace: true, preventScrollReset: true })}
                 >
                   {t('filter.reset')}
@@ -119,7 +110,7 @@ const Mandates: React.FC = () => {
         </section>
       )}
 
-      <ContactCta />
+      <FinalCta />
     </>
   );
 };

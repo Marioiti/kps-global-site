@@ -1,22 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import PageHeader from '@/components/PageHeader';
+import GlyphHero from '@/components/v3/GlyphHero';
+import EntryRows from '@/components/v3/EntryRows';
 import PageSEO from '@/components/PageSEO';
 import SEO from '@/components/SEO';
-import ContentCard from '@/components/ContentCard';
-import ContactCta from '@/components/ContactCta';
+import FinalCta from '@/components/home/FinalCta';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { chipClass, chipLabelClass } from '@/components/filter-chip';
 import { canon } from '@/data/canon';
 import { getCollection } from '@/content';
 
 const LINES = ['deals', 'operations'] as const;
 
-const chipClass = (active: boolean) =>
-  `px-3 py-1.5 text-sm border rounded-sm transition-colors duration-300 ${
-    active
-      ? 'bg-primary text-primary-foreground border-primary'
-      : 'bg-background text-foreground/80 border-border hover:border-primary/40'
-  }`;
 
 /** /insights/: newest first, filters by line and commodity kept in the address (?line=&commodity=). */
 const Insights: React.FC = () => {
@@ -62,14 +57,14 @@ const Insights: React.FC = () => {
   return (
     <>
       {seo}
-      <PageHeader label={title} title={title} lead={all.length ? t('insights.lead') : t('insights.empty')} />
+      <GlyphHero title={title} lead={<p>{all.length ? t('insights.lead') : t('insights.empty')}</p>} />
 
       {all.length > 0 && (
-        <section className="py-20 relative">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <section className="border-t border-border">
+          <div className="page-container section-y">
             <div className="space-y-4 mb-12">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] tracking-[0.28em] uppercase text-muted-foreground font-semibold w-28">
+                <span className={chipLabelClass}>
                   {t('filter.line')}
                 </span>
                 <button type="button" className={chipClass(!line)} onClick={() => update('line', null)}>
@@ -82,7 +77,7 @@ const Insights: React.FC = () => {
                 ))}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] tracking-[0.28em] uppercase text-muted-foreground font-semibold w-28">
+                <span className={chipLabelClass}>
                   {t('filter.commodity')}
                 </span>
                 <button type="button" className={chipClass(!commodity)} onClick={() => update('commodity', null)}>
@@ -103,17 +98,13 @@ const Insights: React.FC = () => {
             </div>
 
             {shown.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {shown.map((entry) => (
-                  <ContentCard key={entry.slug} entry={entry} />
-                ))}
-              </div>
+              <EntryRows entries={shown} />
             ) : (
               <p className="text-muted-foreground">
                 {t('insights.noMatches')}{' '}
                 <button
                   type="button"
-                  className="text-primary underline underline-offset-4"
+                  className="link-v3"
                   onClick={() => setSearchParams(new URLSearchParams(), { replace: true, preventScrollReset: true })}
                 >
                   {t('filter.reset')}
@@ -124,7 +115,7 @@ const Insights: React.FC = () => {
         </section>
       )}
 
-      <ContactCta />
+      <FinalCta />
     </>
   );
 };

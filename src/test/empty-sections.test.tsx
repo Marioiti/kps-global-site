@@ -15,6 +15,7 @@ vi.mock("virtual:content", async (importOriginal) => {
     ...original,
     entries: original.entries.filter((entry) => entry.collection === "documents"),
     mandates: [],
+    cases: [],
   };
 });
 
@@ -39,6 +40,7 @@ describe("empty sections", () => {
     for (const section of SECTIONS) expect(hrefs(), section).not.toContain(section);
     expect(hrefs()).toContain("/documents/");
     expect(document.querySelector("#mandates")).toBeNull();
+    expect(document.querySelector("#results")).toBeNull();
   });
 
   it("are left out of links on other pages too", async () => {

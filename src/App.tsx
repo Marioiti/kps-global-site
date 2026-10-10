@@ -113,7 +113,14 @@ export const routes: RouteRecord[] = [
     path: "/",
     element: <RootLayout />,
     children: [
-      { element: <SiteLayout />, children: pageRoutes() },
+      {
+        element: <SiteLayout />,
+        lazy: async () => {
+          await loadStrings(DEFAULT_LANGUAGE);
+          return { handle: { language: DEFAULT_LANGUAGE } };
+        },
+        children: pageRoutes(),
+      },
       ...LANGUAGES.filter((lang) => lang !== DEFAULT_LANGUAGE).map((lang) => ({
         path: lang,
         element: <SiteLayout />,
@@ -124,7 +131,13 @@ export const routes: RouteRecord[] = [
         },
         children: pageRoutes(),
       })),
-      { path: "*", ...lazyRoute(page("NotFoundPage", () => import("./pages/NotFoundPage"))) },
+      {
+        path: "*",
+        lazy: async () => {
+          await loadStrings(DEFAULT_LANGUAGE);
+          return { Component: (await import("./pages/NotFoundPage")).default };
+        },
+      },
     ],
   },
 ];

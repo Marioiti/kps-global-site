@@ -1,6 +1,7 @@
 ---
 title: "Deal Health Check"
 group: services
+stage: services
 issuer: kps
 dealStep: "When a deal is under way or has stopped"
 summary: "A review of a live or stalled deal: what blocks it, and a step-by-step plan to close the deal or exit it."

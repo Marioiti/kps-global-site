@@ -1,216 +1,170 @@
 import React from 'react';
 import { Link, useLoaderData } from 'react-router-dom';
-import { ArrowLeft, Check } from 'lucide-react';
-import PageHeader from '@/components/PageHeader';
 import PageSEO from '@/components/PageSEO';
-import SectionHeader from '@/components/SectionHeader';
-import FeatureGrid from '@/components/FeatureGrid';
-import ContentCard from '@/components/ContentCard';
-import ContactCta from '@/components/ContactCta';
-import OpenMandates from '@/components/OpenMandates';
-import DocumentsBlock from '@/components/DocumentsBlock';
-import Reveal from '@/hooks/use-reveal';
+import GlyphHero from '@/components/v3/GlyphHero';
+import DossierSection from '@/components/v3/DossierSection';
+import CaseRows from '@/components/v3/CaseRows';
+import { COMMODITY_GLYPHS } from '@/components/v3/glyphs';
 import NotFound from '@/pages/NotFound';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useInternalLinks } from '@/hooks/use-internal-links';
 import { localizePath } from '@/i18n/locales';
-import { documentsByGroups, relatedToCommodity, type CommodityContent, type Collection } from '@/content';
-import type { CommodityFullPage } from '@/content/schema';
+import { canon } from '@/data/canon';
+import { getCases, getMandates, type CommodityContent } from '@/content';
 
 export interface CommodityData {
   page: CommodityContent | null;
 }
 
-/** Related material groups, in display order. Mandates and documents join as their sections appear. */
-const RELATED: { collection: Collection; titleKey: string }[] = [
-  { collection: 'insights', titleKey: 'nav.insights' },
-  { collection: 'procedures', titleKey: 'nav.procedures' },
-];
 
-/** /commodities/<id>/: a full page, or a short card for commodities with `format: short`. */
+/**
+ * /commodities/<id>/: the sign, what the deals are and two actions; then the typical
+ * specification from a named standard, open offers and requests, and cases with checklists.
+ * No commodity prices, producers or countries of origin.
+ */
 const Commodity: React.FC = () => {
   const data = useLoaderData() as CommodityData | null;
   const page = data?.page;
-  if (!page) return <NotFound />;
-  return page.format === 'short' ? <ShortCommodity page={page} /> : <FullCommodity page={page as CommodityContent & CommodityFullPage} />;
-};
-
-const CommoditySEO: React.FC<{ page: CommodityContent }> = ({ page }) => {
-  const { t } = useLanguage();
-  const path = `/commodities/${page.id}/`;
-  return (
-    <PageSEO
-      title={page.title}
-      description={page.description}
-      path={path}
-      crumbs={[
-        { name: t('nav.commodities'), path: '/commodities/' },
-        { name: page.title, path },
-      ]}
-    />
-  );
-};
-
-const BackLink: React.FC = () => {
   const { t, language } = useLanguage();
-  return (
-    <Link
-      to={localizePath('/commodities/', language)}
-      className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-10"
-    >
-      <ArrowLeft size={16} />
-      {t('nav.commodities')}
-    </Link>
-  );
-};
+  if (!page) return <NotFound />;
 
-/** Checklists by deal step: the same for every commodity. */
-const CommodityDocuments: React.FC = () => {
-  const { t } = useLanguage();
-  return (
-    <DocumentsBlock
-      id="commodity-documents"
-      documents={documentsByGroups(['checklists'])}
-      label={t('commodity.related')}
-      title={t('documents.group.checklists')}
-    />
-  );
-};
-
-const Cta: React.FC<{ page: CommodityContent }> = ({ page }) => {
-  const { t } = useLanguage();
-  return (
-    <ContactCta
-      title={t('commodity.ctaTitle')}
-      subtitle={t('article.ctaSubtitle')}
-      label={t('commodity.ctaLabel')}
-      topic={page.title}
-    />
-  );
-};
-
-/** Three paragraphs: the deal and who it is for, what we check and how we structure it, the origin line. */
-const ShortCommodity: React.FC<{ page: CommodityContent }> = ({ page }) => {
-  const { t } = useLanguage();
-  const onBodyClick = useInternalLinks();
-  return (
-    <>
-      <CommoditySEO page={page} />
-      <PageHeader label={t('nav.commodities')} title={page.title} lead={page.summary} />
-      <section id="deal" className="py-24 relative">
-        <div className="max-w-3xl mx-auto px-6 lg:px-8">
-          <BackLink />
-          <div
-            className="prose prose-slate dark:prose-invert max-w-none prose-a:text-primary prose-a:underline-offset-4"
-            onClick={onBodyClick}
-            dangerouslySetInnerHTML={{ __html: page.html }}
-          />
-          <p className="mt-5 text-foreground/80 leading-relaxed border-l-2 border-accent pl-4">{t('deal.originNote')}</p>
-        </div>
-      </section>
-      <OpenMandates commodity={page.id} surface />
-      <CommodityDocuments />
-      <Cta page={page} />
-    </>
-  );
-};
-
-const FullCommodity: React.FC<{ page: CommodityContent & CommodityFullPage }> = ({ page }) => {
-  const { t } = useLanguage();
-  const onBodyClick = useInternalLinks();
-  const listTitle = t('nav.commodities');
-  const related = RELATED.map((group) => ({ ...group, items: relatedToCommodity(group.collection, page.id) })).filter(
-    (group) => group.items.length > 0,
-  );
-  const structure = [
-    { title: t('commodity.basis'), desc: page.structure.basis },
-    { title: t('commodity.payment'), desc: page.structure.payment },
-    { title: t('commodity.inspection'), desc: page.structure.inspection },
-  ];
+  const name = canon.commodities.find((c) => c.id === page.id)?.name[language] ?? page.title;
+  // Mid-sentence in English: "Check an offer for sulphur"; LNG keeps its capitals.
+  const inSentence = language === 'en' && name !== name.toUpperCase() ? name.toLowerCase() : name;
+  const path = `/commodities/${page.id}/`;
+  const contact = localizePath('/contact/', language);
+  const cases = getCases().filter((item) => item.commodityId === page.id);
+  const offers = getMandates().filter((m) => m.commodity === page.id && m.status !== 'closed');
+  const hasLimit = page.spec?.some((row) => row.limit);
+  // The grade line names the standard; a column appears only when rows cite different ones.
+  const standards = new Set(page.spec?.map((row) => row.standard).filter(Boolean));
+  const standardColumn = standards.size > 1;
+  let n = 0;
+  const next = () => ++n;
 
   return (
     <>
-      <CommoditySEO page={page} />
-      <PageHeader label={listTitle} title={page.title} lead={page.summary}>
-        <p className="mt-10 pt-6 border-t border-border/70 text-sm text-muted-foreground">{t('deal.originNote')}</p>
-      </PageHeader>
+      <PageSEO
+        title={page.title}
+        description={page.description}
+        path={path}
+        crumbs={[
+          { name: t('nav.commodities'), path: '/commodities/' },
+          { name: page.title, path },
+        ]}
+      />
 
-      <section id="deal" className="py-24 relative">
-        <div className="max-w-3xl mx-auto px-6 lg:px-8">
-          <BackLink />
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-6">{t('commodity.dealTitle')}</h2>
-          <div
-            className="prose prose-slate dark:prose-invert max-w-none prose-a:text-primary prose-a:underline-offset-4"
-            onClick={onBodyClick}
-            dangerouslySetInnerHTML={{ __html: page.html }}
-          />
+      <GlyphHero
+        glyph={COMMODITY_GLYPHS[page.id]}
+        crumb={{ label: t('nav.commodities'), path: '/commodities/' }}
+        current={name}
+        title={name}
+        lead={
+          <>
+            <p>{page.summary}</p>
+            <p>{page.breaks}</p>
+            <p className="text-[15px] text-muted-foreground">{t('deal.originNote')}</p>
+          </>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-3.5">
+          <Link to={`${contact}?service=offer-check&commodity=${page.id}`} className="btn-accent">
+            {t('commodity.check', { commodity: inSentence })}
+          </Link>
+          <Link to={`${contact}?intent=proposal&commodity=${page.id}`} className="btn-outline">
+            {t('cta.proposal')}
+          </Link>
         </div>
-      </section>
+      </GlyphHero>
 
-      <section id="checks" className="py-24 bg-surface relative">
-        <div className="absolute top-0 left-0 right-0 line-rule" />
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <SectionHeader label={t('commodity.checksLabel')} title={t('commodity.checksTitle')} className="mb-12" />
-          <Reveal as="div" className="grid md:grid-cols-2 gap-x-12 gap-y-5 max-w-5xl">
-            {page.checks.map((check) => (
-              <p key={check} className="flex gap-3 text-foreground/80 leading-relaxed">
-                <Check size={18} className="text-primary shrink-0 mt-1" />
-                <span>{check}</span>
-              </p>
-            ))}
-          </Reveal>
-        </div>
-      </section>
-
-      <section id="structure" className="py-24 relative">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <SectionHeader label={t('commodity.structureLabel')} title={t('commodity.structureTitle')} className="mb-12" />
-          <FeatureGrid items={structure} columns={3} />
-        </div>
-      </section>
-
-      <section id="route" className="py-24 bg-surface relative">
-        <div className="absolute top-0 left-0 right-0 line-rule" />
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <SectionHeader label={t('commodity.routeLabel')} title={t('commodity.routeTitle')} className="mb-12" />
-          <FeatureGrid items={page.route.map((step) => ({ title: step.title, desc: step.detail }))} columns={3} />
-        </div>
-      </section>
-
-      <section id="stalls" className="py-24 relative">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <SectionHeader label={t('commodity.stallsLabel')} title={t('commodity.stallsTitle')} className="mb-12" />
-          <Reveal className="border border-primary/20 bg-primary/[0.03] rounded-sm p-8 md:p-10 max-w-5xl">
-            <ul className="space-y-4">
-              {page.stalls.map((stall) => (
-                <li key={stall} className="flex gap-3 text-foreground/80 leading-relaxed">
-                  <span className="text-accent shrink-0">—</span>
-                  <span>{stall}</span>
-                </li>
-              ))}
-            </ul>
-          </Reveal>
-        </div>
-      </section>
-
-      <OpenMandates commodity={page.id} />
-      <CommodityDocuments />
-
-      {related.map((group) => (
-        <section key={group.collection} className="py-24 bg-surface relative">
-          <div className="absolute top-0 left-0 right-0 line-rule" />
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <SectionHeader label={t('commodity.related')} title={t(group.titleKey)} className="mb-12" />
-            <div className="grid md:grid-cols-3 gap-8">
-              {group.items.slice(0, 3).map((entry) => (
-                <ContentCard key={entry.slug} entry={entry} />
-              ))}
-            </div>
+      {page.spec && page.spec.length > 0 && (
+        <DossierSection id="spec" n={next()}>
+          <h2 className="h2-v3 mb-3">{t('commodity.spec.label')}</h2>
+          <p className="text-base text-muted-foreground mb-6 measure">
+            {page.grade}
+            {hasLimit && <>. {t('commodity.spec.note')}</>}
+          </p>
+          <div className="overflow-x-auto max-w-4xl" tabIndex={0} role="region" aria-label={t('commodity.spec.label')}>
+            <table className="w-full text-[15px] text-left tabular-nums border-b border-border">
+              <thead>
+                <tr className="text-sm text-muted-foreground">
+                  <th scope="col" className="py-3 pr-6 font-normal">{t('commodity.spec.parameter')}</th>
+                  {hasLimit && <th scope="col" className="py-3 pr-6 font-normal">{t('commodity.spec.limit')}</th>}
+                  {standardColumn && <th scope="col" className="py-3 font-normal">{t('commodity.spec.standard')}</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {page.spec.map((row, i) => (
+                  <tr key={row.parameter} className={`border-t ${i === 0 ? 'border-foreground' : 'border-border'}`}>
+                    <th scope="row" className="py-3 pr-6 font-normal text-foreground">{row.parameter}</th>
+                    {hasLimit && <td className="py-3 pr-6 text-body">{row.limit ?? ''}</td>}
+                    {standardColumn && <td className="py-3 text-muted-foreground whitespace-nowrap">{row.standard ?? ''}</td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </section>
-      ))}
+          {page.specNote && <p className="mt-4 text-[15px] text-body measure">{page.specNote}</p>}
+        </DossierSection>
+      )}
 
-      <Cta page={page} />
+      <DossierSection id="offers" n={next()} band>
+        <h2 className="h2-v3 mb-3">{t('commodity.offers.title')}</h2>
+        {offers.length > 0 ? (
+          <>
+            <p className="text-base text-muted-foreground mb-6 measure">{t('commodity.offers.note')}</p>
+            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={t('commodity.offers.title')}>
+              <table className="w-full min-w-[560px] text-[15px] text-left border-b border-border">
+                <thead>
+                  <tr className="text-sm text-muted-foreground">
+                    <th scope="col" className="py-3 pr-6 font-normal">{t('mandate.field.side')}</th>
+                    <th scope="col" className="py-3 pr-6 font-normal">{t('commodity.offers.volumeBasis')}</th>
+                    <th scope="col" className="py-3 pr-6 font-normal">{t('mandate.field.status')}</th>
+                    <td className="py-3" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {offers.map((m) => (
+                    <tr key={m.slug} className="border-t border-border">
+                      <th scope="row" className="py-3.5 pr-6 font-semibold text-foreground">{t(`mandate.side.${m.side}`)}</th>
+                      <td className="py-3.5 pr-6 text-body">{`${m.volume}, ${m.basis}`}</td>
+                      <td className={`py-3.5 pr-6 ${m.status === 'open' ? 'text-status-green' : 'text-status-amber'}`}>{t(`mandate.status.${m.status}`)}</td>
+                      <td className="py-3.5 text-right">
+                        <Link to={localizePath(`/mandates/${m.slug}/`, language)} className="link-v3">
+                          {t('commodity.offers.details')}
+                          <span className="sr-only"> {m.id}</span>
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : (
+          <p className="text-body">
+            {t('commodity.offers.none')}{' '}
+            <Link to={`${contact}?intent=proposal&commodity=${page.id}`} className="link-v3">
+              {t('cta.proposal')}
+            </Link>
+          </p>
+        )}
+      </DossierSection>
+
+      <DossierSection id="results" n={next()}>
+        <h2 className="h2-v3 mb-[22px]">{t('commodity.files.title', { commodity: name })}</h2>
+        {cases.length > 0 && <CaseRows cases={cases} withoutCommodity />}
+        <p className={`text-body ${cases.length > 0 ? 'mt-6' : ''}`}>
+          {t('commodity.checklists.before')}{' '}
+          <Link to={localizePath('/documents/before-loi/', language)} className="link-v3">
+            {t('commodity.checklists.loi')}
+          </Link>{' '}
+          {t('commodity.checklists.and')}{' '}
+          <Link to={localizePath('/documents/before-payment/', language)} className="link-v3">
+            {t('commodity.checklists.payment')}
+          </Link>
+          .
+        </p>
+      </DossierSection>
     </>
   );
 };

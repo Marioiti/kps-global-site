@@ -18,7 +18,7 @@ const MONTHS_LONG: Record<Language, string[]> = {
 };
 
 /** `2026-09` → "Sep 2026" / "сент. 2026" / "2026年9月"; `2017` → "2017". */
-export function formatMonthYear(value: string, language: Language): string {
+function formatMonthYear(value: string, language: Language): string {
   const [year, month] = value.split('-');
   if (!month) return year;
   const name = MONTHS_SHORT[language][Number(month) - 1];

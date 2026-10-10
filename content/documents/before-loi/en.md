@@ -1,6 +1,7 @@
 ---
 title: "Checklist: Before LOI"
 group: checklists
+stage: before-loi
 issuer: kps
 dealStep: "Before LOI"
 summary: "What to check before sending or answering a letter of intent. The same for every commodity."

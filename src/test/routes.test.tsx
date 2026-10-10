@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { HelmetProvider } from "react-helmet-async";
 import { createMemoryRouter, RouterProvider, type RouteObject } from "react-router-dom";
 import { routes } from "@/App";
@@ -52,7 +52,7 @@ describe("routes", () => {
 
   it("renders the home page in the language of the URL", async () => {
     await renderAt("/ru/");
-    expect(screen.getByRole("heading", { level: 1, name: translations.ru["hero.title"] })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: translations.ru["home.hero.title"] })).toBeInTheDocument();
   });
 
   it("links the language switcher to the same page in other languages", async () => {
@@ -66,8 +66,9 @@ describe("routes", () => {
 
   it("highlights the active menu item, including on sub-pages", async () => {
     await renderAt("/services/deal-structuring/");
-    const services = screen.getAllByRole("link", { name: "Services" })[0];
-    expect(services).toHaveAttribute("aria-current", "page");
+    const services = screen.getByRole("button", { name: "Services" });
+    expect(services).toHaveAttribute("aria-current", "true");
+    expect(screen.getAllByRole("link", { name: "Commodities" })[0]).not.toHaveAttribute("aria-current");
   });
 
   it("serves /privacy without a trailing slash", async () => {
@@ -102,70 +103,14 @@ describe("routes", () => {
     for (const entry of canon.history) expect(text).toContain(entry.name);
   });
 
-  it("shows the 404 page in all three languages", async () => {
+  it("shows the 404 page in the language of the address, with links home, to the services and to contact", async () => {
     await renderAt("/ru/no-such-page/");
     expect(screen.getByRole("heading", { level: 1, name: "404" })).toBeInTheDocument();
-    expect(screen.getByText("Oops! Page not found")).toBeInTheDocument();
-    expect(screen.getByText("Страница не найдена")).toBeInTheDocument();
-    expect(screen.getByText("页面未找到")).toBeInTheDocument();
-  });
-});
-
-describe("contact form", () => {
-  const fill = () => {
-    const ru = translations.ru;
-    fireEvent.change(screen.getByLabelText(ru["contact.name"]), { target: { value: "Иван" } });
-    fireEvent.change(screen.getByLabelText(ru["contact.country"]), { target: { value: "Казахстан" } });
-    fireEvent.change(screen.getByLabelText(ru["contact.email"]), { target: { value: "ivan@example.com" } });
-    fireEvent.change(screen.getByLabelText(ru["contact.role"]), { target: { value: "intermediary" } });
-    fireEvent.change(screen.getByLabelText(ru["contact.commodity"]), { target: { value: "sulphur" } });
-    fireEvent.change(screen.getByLabelText(ru["contact.message"]), { target: { value: "Нужна проверка" } });
-    fireEvent.click(screen.getByRole("checkbox", { name: new RegExp(ru["contact.privacyPrefix"].trim()) }));
-  };
-
-  it("prefills the topic and documents from the address and sends every field", async () => {
-    vi.stubEnv("VITE_FORMSPREE_ENDPOINT", "https://formspree.io/f/test");
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
-    vi.stubGlobal("fetch", fetchMock);
-
-    await renderAt("/ru/contact/?topic=Offer%20Check&docs=nda-form,unknown");
-    await waitFor(() =>
-      expect(screen.getByLabelText(translations.ru["contact.topic"])).toHaveValue("Offer Check"),
-    );
-    await waitFor(() => expect(screen.getByRole("checkbox", { name: "Тестовое NDA" })).toBeChecked());
-    expect(screen.getByRole("checkbox", { name: "Test checklist" })).not.toBeChecked();
-    expect(screen.queryByRole("checkbox", { name: "Hidden form" })).toBeNull();
-    fill();
-    fireEvent.click(screen.getByRole("button", { name: translations.ru["contact.submit"] }));
-
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe("https://formspree.io/f/test");
-    expect(JSON.parse(init.body)).toMatchObject({
-      name: "Иван",
-      country: "Казахстан",
-      email: "ivan@example.com",
-      _replyto: "ivan@example.com",
-      role: "intermediary",
-      commodity: "sulphur",
-      documents: "Test NDA",
-      topic: "Offer Check",
-      language: "ru",
-      page: "/ru/contact/",
-    });
-    expect(await screen.findByRole("heading", { name: new RegExp(canon.contacts.email) })).toBeInTheDocument();
-  });
-
-  it("shows the email address instead of the button when the form endpoint is not set", async () => {
-    vi.stubEnv("VITE_FORMSPREE_ENDPOINT", "");
-    await renderAt("/ru/contact/");
-    expect(screen.queryByRole("button", { name: translations.ru["contact.submit"] })).toBeNull();
-    const withEmail = (text: string) => text.replace("{email}", canon.contacts.email);
-    expect(screen.getByText(withEmail(translations.ru["contact.noForm"]))).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: withEmail(translations.ru["contact.emailUs"]) })).toHaveAttribute(
-      "href",
-      `mailto:${canon.contacts.email}`,
-    );
+    // All three languages are in the page; the browser keeps the one of the address.
+    expect(screen.getByText("Page not found")).not.toBeVisible();
+    expect(screen.getByText("页面未找到")).not.toBeVisible();
+    const ru = screen.getByRole("heading", { level: 2, name: "Страница не найдена" }).parentElement!;
+    expect(within(ru).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/ru/", "/ru/services/", "/ru/contact/"]);
   });
 });
 

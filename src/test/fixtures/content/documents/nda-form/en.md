@@ -1,6 +1,7 @@
 ---
 title: "Test NDA"
 group: standard-forms
+stage: before-loi
 issuer: kps
 dealStep: "Before details are shared"
 summary: "A test form."

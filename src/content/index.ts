@@ -1,10 +1,17 @@
-import { entries, bodies, commodities, mandates } from 'virtual:content';
+import { entries, bodies, cases, commodities, mandates } from 'virtual:content';
 import type { Language } from '@/i18n/translations';
 import { DEFAULT_LANGUAGE, localizePath } from '@/i18n/locales';
 import type { Collection } from './schema';
-import type { CommodityContent, ContentBody, ContentEntry, ContentVersion, MandateEntry, ProcedureStep } from './types';
+import type { CaseEntry, CaseText, CommodityContent, ContentBody, ContentEntry, ContentVersion, MandateEntry, ProcedureStep } from './types';
 
-export type { CommodityContent, ContentBody, ContentEntry, ContentVersion, Collection, MandateEntry, ProcedureStep };
+export type { CaseEntry, CaseText, CommodityContent, ContentBody, ContentEntry, ContentVersion, Collection, MandateEntry, ProcedureStep };
+
+/** Published cases, by `order`; the home page shows the first three. */
+export const getCases = (): CaseEntry[] => cases;
+
+/** The case text in `language`, or the English one. */
+export const caseText = (item: CaseEntry, language: Language): CaseText =>
+  item.texts[language] ?? (item.texts[DEFAULT_LANGUAGE] as CaseText);
 
 /** Published mandates: open and in work first, closed last. */
 export const getMandates = (): MandateEntry[] => mandates;
@@ -71,16 +78,6 @@ export async function loadCommodity(id: string, language: Language): Promise<Com
   const load = bodies[`commodities/${id}/${language}`];
   return load ? ((await load()).default as CommodityContent) : null;
 }
-
-/**
- * Published items about a commodity, newest first. Procedures without a
- * commodity list apply to every commodity.
- */
-export const relatedToCommodity = (collection: Collection, commodity: string): ContentEntry[] =>
-  getCollection(collection).filter(
-    (entry) =>
-      entry.commodity.includes(commodity) || (collection === 'procedures' && entry.commodity.length === 0),
-  );
 
 /** Other insights sharing a commodity, newest first. */
 export const relatedByCommodity = (entry: ContentEntry, limit = 3): ContentEntry[] =>

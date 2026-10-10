@@ -33,6 +33,8 @@ export interface ContentEntry {
   version?: string;
   /** Documents only. */
   group?: 'counterparty-pack' | 'standard-forms' | 'engagement' | 'services' | 'checklists';
+  /** Deal step (documents). */
+  stage?: 'before-loi' | 'before-contract' | 'contracts' | 'before-payment' | 'before-shipment' | 'services';
   issuer?: 'kps' | 'counterparty' | 'supplier';
   access?: 'on-request' | 'preview';
   /** Documents with `preview` access: watermarked page images in public/docs-preview/<slug>/. */
@@ -59,6 +61,32 @@ export type CommodityContent = CommodityPage & {
 };
 
 export type { ProcedureStep };
+
+/** The text of a case in one language. */
+export interface CaseText {
+  commodity: string;
+  route: string;
+  title: string;
+  problem: string;
+  action: string;
+  result: string;
+  metricValue?: string;
+  metricLabel?: string;
+  summary?: string;
+}
+
+/** A published case; text per language, en is always present. */
+export interface CaseEntry {
+  slug: string;
+  order: number;
+  year?: number;
+  /** Service pages that show this case. */
+  services: ('deal-structuring' | 'compliance-kyc' | 'fractional-coo')[];
+  stamp?: 'stop' | 'join';
+  /** Site commodity id when the case commodity is one of them (links the eyebrow). */
+  commodityId?: string;
+  texts: Partial<Record<Language, CaseText>>;
+}
 
 /** A published mandate. `status` is effective: past `validUntil` it is `closed`. */
 export interface MandateEntry {

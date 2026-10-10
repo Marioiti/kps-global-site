@@ -10,6 +10,8 @@ import {
   commoditySchemaFor,
   documentSchema,
   documentTranslationSchema,
+  caseSchema,
+  caseTranslationSchema,
   mandateSchema,
   mandateTranslationSchema,
   insightSchema,
@@ -24,9 +26,9 @@ import { canon } from '../data/canon';
 import { interpolate } from '../i18n/translations';
 import { allTranslations as translations } from '../i18n/all-strings';
 import { localizePath } from '../i18n/locales';
-import { checkBlockedNames, checkMandateText, readBlockedNames } from './mandate-text';
+import { checkBlockedNames, checkCaseText, checkMandateText, readBlockedNames } from './mandate-text';
 import { readingMinutes, renderMarkdown } from './markdown';
-import type { CommodityContent, ContentBody, ContentEntry, ContentVersion, MandateEntry } from './types';
+import type { CaseEntry, CaseText, CommodityContent, ContentBody, ContentEntry, ContentVersion, MandateEntry } from './types';
 
 /**
  * Reads content/<collection>/<slug>/{en,ru,zh}.md in Node (build, dev server,
@@ -52,6 +54,8 @@ export interface LoadedContent {
   entries: (ContentEntry & { bodies: Partial<Record<Language, ContentBody>> })[];
   /** Published mandates: open and in work first, closed last; newest first within each group. */
   mandates: MandateEntry[];
+  /** Published cases, by `order`. */
+  cases: CaseEntry[];
   /** Commodity pages: every canon commodity in every language. */
   commodities: Record<string, Record<Language, CommodityContent>>;
   /** What is kept off the site and why, e.g. "insights/<slug>: draft" or "insights/<slug>/zh: not reviewed". */
@@ -245,6 +249,7 @@ export function loadContent(rootDir: string, options: LoadOptions = {}): LoadedC
         basis: shared.basis as string | undefined,
         version: shared.version as string | undefined,
         group: shared.group as ContentEntry['group'],
+        stage: shared.stage as ContentEntry['stage'],
         issuer: shared.issuer as ContentEntry['issuer'],
         access: shared.access as ContentEntry['access'],
         previewImages: previews,
@@ -269,6 +274,7 @@ export function loadContent(rootDir: string, options: LoadOptions = {}): LoadedC
   checkContentTree(rootDir, problems);
   const commodities = loadCommodities(contentDir, problems, files);
   const mandates = loadMandates(rootDir, problems, files, unpublished, today);
+  const cases = loadCases(rootDir, problems, files, unpublished);
   for (const mandate of mandates) {
     if (mandate.status !== 'open') continue;
     const news = mandateNews(mandate);
@@ -281,7 +287,7 @@ export function loadContent(rootDir: string, options: LoadOptions = {}): LoadedC
   if (problems.length) throw new ContentError(problems);
 
   entries.sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));
-  return { entries, mandates, commodities, unpublished, files };
+  return { entries, mandates, cases, commodities, unpublished, files };
 }
 
 /** Fields that never belong in content, at any depth of the frontmatter. */
@@ -312,7 +318,7 @@ let warnedNoBlockedList = false;
  * Checks across the whole content/ tree, drafts and archives included (the repository is
  * public), plus public/: banned fields, blocked counterparty names, document files.
  */
-export function checkContentTree(rootDir: string, problems: string[]): void {
+function checkContentTree(rootDir: string, problems: string[]): void {
   const blockedNames = readBlockedNames(rootDir);
   if (!blockedNames && !warnedNoBlockedList) {
     warnedNoBlockedList = true;
@@ -434,6 +440,90 @@ function loadMandates(
   return mandates.sort(
     (a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || b.published.localeCompare(a.published),
   );
+}
+
+/** content/cases/<slug>/{en,ru,zh}.md: frontmatter only, strict schema; sums only in metricValue, as USD. */
+function loadCases(rootDir: string, problems: string[], files: string[], unpublished: string[]): CaseEntry[] {
+  const dir = path.join(rootDir, 'content', 'cases');
+  if (!fs.existsSync(dir)) return [];
+  const cases: CaseEntry[] = [];
+
+  for (const slug of fs.readdirSync(dir).sort()) {
+    if (slug.startsWith('_') || !fs.statSync(path.join(dir, slug)).isDirectory()) continue;
+    const rel = (name: string) => `content/cases/${slug}/${name}`;
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
+      problems.push(`content/cases/${slug} › folder name: use lowercase latin letters, digits and hyphens`);
+      continue;
+    }
+    if (!fs.existsSync(path.join(dir, slug, 'en.md'))) {
+      problems.push(`${rel('en.md')} › file: the English version is required`);
+      continue;
+    }
+
+    let shared: { order: number; year?: number; services: CaseEntry['services']; stamp?: CaseEntry['stamp']; draft: boolean } | null = null;
+    const texts: Partial<Record<Language, CaseText>> = {};
+    for (const language of LANGUAGES) {
+      const file = rel(`${language}.md`);
+      const fullPath = path.join(dir, slug, `${language}.md`);
+      if (!fs.existsSync(fullPath)) continue;
+      files.push(file);
+      const source = fs.readFileSync(fullPath, 'utf8');
+      problems.push(...checkCaseText(file, source));
+
+      const match = source.match(FRONTMATTER);
+      if (!match) {
+        problems.push(`${file} › frontmatter: the file must start with a --- block`);
+        continue;
+      }
+      if (match[2].trim()) problems.push(`${file} › body: a case has no text outside the frontmatter`);
+      let raw: unknown;
+      try {
+        raw = parseYaml(match[1]) ?? {};
+      } catch (error) {
+        problems.push(`${file} › frontmatter: invalid YAML (${(error as Error).message.split('\n')[0]})`);
+        continue;
+      }
+
+      const parsed = (language === DEFAULT_LANGUAGE ? caseSchema : caseTranslationSchema).safeParse(raw);
+      if (!parsed.success) {
+        problems.push(...formatZodError(file, parsed.error));
+        continue;
+      }
+      const data = parsed.data as CaseText & { draft: boolean; order?: number; year?: number; services?: CaseEntry['services']; stamp?: CaseEntry['stamp'] };
+      if (language === DEFAULT_LANGUAGE) shared = { order: data.order!, year: data.year, services: data.services ?? [], stamp: data.stamp, draft: data.draft };
+      if (data.draft) continue;
+      const fallback = texts[DEFAULT_LANGUAGE];
+      texts[language] = {
+        commodity: data.commodity ?? fallback?.commodity ?? '',
+        route: data.route ?? fallback?.route ?? '',
+        title: data.title,
+        problem: data.problem,
+        action: data.action,
+        result: data.result,
+        ...(data.metricValue ? { metricValue: data.metricValue } : {}),
+        ...(data.metricLabel ? { metricLabel: data.metricLabel } : {}),
+        ...(data.summary ? { summary: data.summary } : {}),
+      };
+    }
+
+    if (!shared) continue;
+    if (shared.draft) {
+      unpublished.push(`cases/${slug}: draft (en.md), not published`);
+      continue;
+    }
+    const commodityId = texts.en?.commodity.toLowerCase();
+    cases.push({
+      slug,
+      order: shared.order,
+      services: shared.services,
+      ...(shared.year ? { year: shared.year } : {}),
+      ...(shared.stamp ? { stamp: shared.stamp } : {}),
+      ...(canon.commodities.some((c) => c.id === commodityId) ? { commodityId } : {}),
+      texts,
+    });
+  }
+
+  return cases.sort((a, b) => a.order - b.order || a.slug.localeCompare(b.slug));
 }
 
 const escapeHtml = (value: string) =>

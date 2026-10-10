@@ -1,6 +1,7 @@
 ---
 title: "LOI (buyer form)"
 group: standard-forms
+stage: before-loi
 issuer: counterparty
 dealStep: "Request, before an offer"
 summary: "Letter of intent: the buyer's form."

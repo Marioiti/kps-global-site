@@ -1,6 +1,7 @@
 ---
 title: "Mutual NDA"
 group: standard-forms
+stage: before-loi
 issuer: kps
 dealStep: "Before details are shared"
 summary: "Mutual non-disclosure agreement with a non-circumvention clause, signed before details of a deal or a mandate are shared."

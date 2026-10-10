@@ -1,6 +1,7 @@
 ---
 title: "Deal Architecture"
 group: services
+stage: services
 issuer: kps
 dealStep: "TODO"
 summary: "TODO: summary."

@@ -1,12 +1,13 @@
 ---
 title: "ICTSA — International Consulting & Transaction Support Agreement"
 group: engagement
+stage: contracts
 issuer: kps
 dealStep: "When the engagement starts"
-summary: "Consulting agreement between KPS Global Solutions and its client — a buyer, a seller or an investor. Fees: retainer, milestones and success fee."
+summary: "Consulting agreement between KPS Global Solutions and its client — a buyer, a seller or an investor. Fees: retainer and milestones."
 contents:
   - "Parties and the scope of consulting services"
-  - "Fees: retainer, milestone fees and success fee"
+  - "Fees: retainer and milestone fees"
   - "Governing law: Hong Kong"
   - "Arbitration: HKIAC"
   - "Available in English, Bahasa Indonesia and Chinese; the English version prevails"
@@ -17,4 +18,4 @@ draft: false
 reviewed: false
 ---
 
-The agreement under which we work for a client — a buyer, a seller or an investor. The client pays for consulting: a retainer, fees for delivered milestones and a success fee. KPS carries the risk of its own services only.
+The agreement under which we work for a client — a buyer, a seller or an investor. The client pays for consulting: a retainer and fees for delivered milestones. KPS carries the risk of its own services only.

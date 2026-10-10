@@ -1,10 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { localizePath } from '@/i18n/locales';
 import { legalAddressLine } from '@/data/canon';
 import PageSEO from '@/components/PageSEO';
+import GlyphHero from '@/components/v3/GlyphHero';
 
 const SECTION_KEYS = ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10'] as const;
 
@@ -33,7 +31,7 @@ function renderBody(body: string): React.ReactNode[] {
 
     if (isList) {
       return (
-        <ul key={bi} className="my-4 space-y-1.5 list-disc pl-5 text-muted-foreground">
+        <ul key={bi} className="my-4 space-y-1.5 list-disc pl-5 text-body">
           {lines.map((l, li) => (
             <li key={li} className="leading-relaxed">
               {renderBold(l.trim().slice(2), `${bi}-${li}`)}
@@ -44,7 +42,7 @@ function renderBody(body: string): React.ReactNode[] {
     }
 
     return (
-      <p key={bi} className="my-4 leading-relaxed text-muted-foreground whitespace-pre-line">
+      <p key={bi} className="my-4 text-body whitespace-pre-line">
         {renderBold(block, `${bi}`)}
       </p>
     );
@@ -52,8 +50,7 @@ function renderBody(body: string): React.ReactNode[] {
 }
 
 const PrivacyPolicy: React.FC = () => {
-  const { t, language } = useLanguage();
-  const homePath = localizePath('/', language);
+  const { t } = useLanguage();
   const body = (key: string) => renderBody(t(key, { address: legalAddressLine() }));
 
   return (
@@ -64,33 +61,23 @@ const PrivacyPolicy: React.FC = () => {
         path="/privacy/"
         crumbs={[{ name: t('privacy.title'), path: '/privacy/' }]}
       />
-      <div className="max-w-3xl mx-auto px-6 lg:px-8 pt-36 pb-16 md:pb-24">
-        <Link
-          to={homePath}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-10"
-        >
-          <ArrowLeft size={16} />
-          {t('privacy.backHome')}
-        </Link>
+      <GlyphHero
+        glyph="私"
+        title={t('privacy.title')}
+        lead={<p className="text-[15px] text-muted-foreground">{`${t('privacy.lastUpdatedLabel')}: ${t('privacy.lastUpdatedDate')}`}</p>}
+      />
+      <div className="border-t border-border">
+        <div className="page-container section-y text-body">
+          <div className="measure">
+            {body('privacy.intro')}
 
-        <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-3">
-          {t('privacy.title')}
-        </h1>
-        <p className="text-xs tracking-widest uppercase text-muted-foreground mb-10">
-          {t('privacy.lastUpdatedLabel')}: {t('privacy.lastUpdatedDate')}
-        </p>
-
-        <div className="text-[15px]">
-          {body('privacy.intro')}
-
-          {SECTION_KEYS.map((s) => (
-            <section key={s} className="mt-10">
-              <h2 className="font-serif text-xl md:text-2xl text-foreground mb-2">
-                {t(`privacy.${s}.title`)}
-              </h2>
-              {body(`privacy.${s}.body`)}
-            </section>
-          ))}
+            {SECTION_KEYS.map((s) => (
+              <section key={s} className="mt-10">
+                <h2 className="font-display text-2xl md:text-[28px] text-foreground mb-2">{t(`privacy.${s}.title`)}</h2>
+                {body(`privacy.${s}.body`)}
+              </section>
+            ))}
+          </div>
         </div>
       </div>
     </>

@@ -58,10 +58,10 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className = '' }
         }
         setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
       }}
-      className={`inline-flex h-8 w-8 items-center justify-center rounded-sm border border-border text-muted-foreground hover:text-foreground transition-colors ${focusRing} ${className}`}
+      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:border-foreground ${focusRing} ${className}`}
     >
-      <Moon size={16} className="dark:hidden" aria-hidden="true" />
-      <Sun size={16} className="hidden dark:block" aria-hidden="true" />
+      <Moon size={18} strokeWidth={1.6} className="dark:hidden" aria-hidden="true" />
+      <Sun size={18} strokeWidth={1.6} className="hidden dark:block" aria-hidden="true" />
     </button>
   );
 };
@@ -89,7 +89,7 @@ export const ThemeChoice: React.FC<{ className?: string }> = ({ className = '' }
           aria-pressed={current === value}
           onClick={() => setTheme(value)}
           className={`flex flex-col items-center justify-center gap-1 px-2 py-2 text-xs leading-tight text-center tracking-wide transition-colors ${focusRing} ${
-            current === value ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+            current === value ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Icon size={14} aria-hidden="true" />
@@ -100,4 +100,3 @@ export const ThemeChoice: React.FC<{ className?: string }> = ({ className = '' }
   );
 };
 
-export default ThemeToggle;

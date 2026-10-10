@@ -1,6 +1,7 @@
 ---
 title: "ICPO (buyer form)"
 group: standard-forms
+stage: before-contract
 issuer: counterparty
 dealStep: "After the offer, before the contract"
 summary: "Irrevocable corporate purchase order: the buyer's form."

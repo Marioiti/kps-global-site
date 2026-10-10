@@ -1,21 +1,20 @@
-import { en } from './strings/en';
-
 export type Language = 'en' | 'ru' | 'zh';
 
 /**
- * Interface strings for the browser. English ships with the main bundle; Russian and
- * Chinese are separate chunks, loaded by their routes before the page renders (see
- * `loadStrings` in App.tsx). Build-time code uses `allTranslations` from ./all-strings.
+ * Interface strings for the browser. Each language is a separate chunk, loaded by its route
+ * before the page renders (see `loadStrings` in App.tsx); prerendered pages preload the chunk.
+ * Build-time code uses `allTranslations` from ./all-strings.
  */
-export const translations: Record<Language, Record<string, string>> = { en, ru: {}, zh: {} };
+export const translations: Record<Language, Record<string, string>> = { en: {}, ru: {}, zh: {} };
 
-const LOADERS: Record<Exclude<Language, 'en'>, () => Promise<Record<string, string>>> = {
+const LOADERS: Record<Language, () => Promise<Record<string, string>>> = {
+  en: () => import('./strings/en').then((m) => m.en),
   ru: () => import('./strings/ru').then((m) => m.ru),
   zh: () => import('./strings/zh').then((m) => m.zh),
 };
 
 export async function loadStrings(language: Language): Promise<void> {
-  if (language === 'en' || Object.keys(translations[language]).length > 0) return;
+  if (Object.keys(translations[language]).length > 0) return;
   Object.assign(translations[language], await LOADERS[language]());
 }
 

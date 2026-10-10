@@ -104,4 +104,32 @@ export function articleJsonLd(input: ArticleJsonLdInput): JsonLd {
 }
 
 /** Safe to inline in a <script> element. */
+/** Service: provided by the organisation; prices stay in the page text, not in the data. */
+export function serviceJsonLd(input: { name: string; serviceType: string; description: string; path: string; language: Language }): JsonLd {
+  const { name, serviceType, description, path, language } = input;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name,
+    serviceType,
+    description,
+    url: absoluteUrl(localizePath(path, language)),
+    provider: { '@type': 'ProfessionalService', '@id': `${SITE_URL}/#organization`, name: canon.brand },
+    areaServed: [...canon.corridor.suppliers, ...canon.corridor.buyers].map((region) => ({ '@type': 'Place', name: region.en })),
+  };
+}
+
+/** FAQPage from the questions and answers shown on the page, in the same order. */
+export function faqJsonLd(items: { question: string; answer: string }[]): JsonLd {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map(({ question, answer }) => ({
+      '@type': 'Question',
+      name: question,
+      acceptedAnswer: { '@type': 'Answer', text: answer },
+    })),
+  };
+}
+
 export const serializeJsonLd = (data: JsonLd): string => JSON.stringify(data).replace(/</g, '\\u003c');

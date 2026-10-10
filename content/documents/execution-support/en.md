@@ -1,6 +1,7 @@
 ---
 title: "Execution Support"
 group: services
+stage: services
 issuer: kps
 dealStep: "TODO"
 summary: "TODO: summary."

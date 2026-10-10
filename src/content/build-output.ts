@@ -31,7 +31,8 @@ export function sitemapPages(entries: ContentEntry[], mandates: MandateEntry[] =
   const items = entries.map(
     (entry): SitemapPage => ({
       path: `/${entry.collection}/${entry.slug}/`,
-      languages: publishedLanguages(entry),
+      // Documents are in English: their pages in other languages point to the English one.
+      languages: entry.collection === 'documents' ? ['en'] : publishedLanguages(entry),
       lastmod: entry.date,
     }),
   );
@@ -89,7 +90,7 @@ export async function writeContentOutputs(rootDir: string, outDir: string): Prom
     'og-image.png',
     await renderOgImage(
       rootDir,
-      { eyebrow: t('en', 'footer.tagline'), title: t('en', 'hero.title'), brand: canon.brand, site: 'kpsglobal.id' },
+      { eyebrow: t('en', 'footer.tagline'), title: t('en', 'home.title'), brand: canon.brand, site: 'kpsglobal.id' },
       { width: 1200, height: 630 },
     ),
   );
@@ -105,8 +106,8 @@ export async function writeContentOutputs(rootDir: string, outDir: string): Prom
           ? t(language, `news.kind.${entry.kind}`)
           : entry.audience?.length
             ? entry.audience.map((a) => t(language, `procedures.audience.${a}`)).join(' · ')
-            : entry.group
-              ? t(language, `documents.group.${entry.group}`)
+            : entry.stage
+              ? t(language, `documents.stage.${entry.stage}`)
               : t(language, 'feed.news');
       const png = await renderOgImage(rootDir, {
         eyebrow,
@@ -149,11 +150,11 @@ export async function writePagePreviews(rootDir: string, outDir: string): Promis
     const language = (html.match(HTML_LANG)?.[1] ?? 'en') as Language;
     const lang = LANGUAGES.includes(language) ? language : 'en';
     const ogTitle = decodeEntities(html.match(OG_TITLE)?.[1] ?? canon.brand);
-    const suffix = ` — ${canon.brand}`;
-    const prefix = `${canon.brand} — `;
-    // The home page title repeats the tagline; its preview carries the hero line instead.
+    const suffix = ` · ${canon.brand}`;
+    const prefix = `${canon.brand} · `;
+    // The home page title repeats the tagline; its preview carries the promise instead.
     const title = image.startsWith('/og/page-home-')
-      ? t(lang, 'hero.title')
+      ? t(lang, 'home.title')
       : ogTitle.endsWith(suffix)
       ? ogTitle.slice(0, -suffix.length)
       : ogTitle.startsWith(prefix)

@@ -10,9 +10,9 @@ import { parse as parseYaml } from 'yaml';
 import { PDFDocument, degrees, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 
-export const NAVY = { r: 22 / 255, g: 35 / 255, b: 63 / 255 };
-export const PREVIEW_WATERMARK = 'kpsglobal.id · PREVIEW · NOT FOR USE';
-export const PREVIEW_WIDTH = 1200;
+const NAVY = { r: 22 / 255, g: 35 / 255, b: 63 / 255 };
+const PREVIEW_WATERMARK = 'kpsglobal.id · PREVIEW · NOT FOR USE';
+const PREVIEW_WIDTH = 1200;
 
 /** `--doc x --to "Acme"` → { doc: 'x', to: 'Acme' }; bare words go to `_`. */
 export function parseArgs(argv: string[]): Record<string, string> & { _: string } {
@@ -48,7 +48,7 @@ export function readCard(rootDir: string, slug: string): Card | null {
 }
 
 /** A font with Latin, Cyrillic and Chinese glyphs for watermarks (macOS, then common Linux paths). */
-export function findUnicodeFont(): string | null {
+function findUnicodeFont(): string | null {
   const candidates = [
     '/System/Library/Fonts/Supplemental/Arial Unicode.ttf',
     '/Library/Fonts/Arial Unicode.ttf',

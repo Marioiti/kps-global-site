@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { HelmetProvider } from "react-helmet-async";
 import { createMemoryRouter, RouterProvider, type RouteObject } from "react-router-dom";
 import { routes } from "@/App";
@@ -13,6 +13,7 @@ import { buildSitemap } from "@/seo/sitemap";
 import { buildFeed } from "@/seo/feed";
 import { previewImage } from "@/content/preview";
 import { canon } from "@/data/canon";
+import { allTranslations as translations } from "@/i18n/all-strings";
 import { LANGUAGES } from "@/i18n/locales";
 import { forbidden } from "./forbidden";
 
@@ -125,8 +126,14 @@ describe("commodity pages and procedures", () => {
         const page = commodities[id][language];
         expect(page.title, `${id}/${language}`).toBeTruthy();
         expect(page.description.length).toBeLessThanOrEqual(160);
+        expect(page.grade, `${id}/${language} grade`).toBeTruthy();
+        expect(page.spec?.length, `${id}/${language} spec`).toBeGreaterThan(0);
       }
     }
+    // LNG has no single grade: parameters without values, and a line on where the values come from.
+    expect(commodities.lng.en.spec!.every((row) => !row.limit)).toBe(true);
+    expect(commodities.lng.en.specNote).toBeTruthy();
+    expect(commodities.copper.en.spec!.every((row) => row.limit && row.standard)).toBe(true);
     const titles = Object.values(commodities).flatMap((pages) => Object.values(pages).map((p) => p.title));
     expect(new Set(titles).size).toBe(titles.length);
   });
@@ -333,50 +340,59 @@ describe("content pages", () => {
 
   it("lists insights newest first", async () => {
     await renderAt("/insights/");
-    const titles = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    const titles = [...document.querySelectorAll("main li h2")].map((h) => h.textContent);
     expect(titles).toEqual(["Alpha: reading an offer", "Beta: structuring a copper deal"]);
   });
 
   it("links related insights by commodity", async () => {
     await renderAt("/insights/alpha-offer/");
-    expect(await screen.findByRole("heading", { level: 3, name: "Beta: structuring a copper deal" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Beta: structuring a copper deal" })).toBeInTheDocument();
   });
 
   it("links a news item to its related items", async () => {
     await renderAt("/news/launch/");
-    expect(await screen.findByRole("heading", { level: 3, name: "Alpha: reading an offer" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Alpha: reading an offer" })).toBeInTheDocument();
   });
 
-  it("shows the latest insights on the home page", async () => {
-    await renderAt("/");
-    expect(document.getElementById("insights")).not.toBeNull();
-  });
-
-  it("renders a commodity page with its sections, origin rule and contact link", async () => {
-    await renderAt("/ru/commodities/copper/");
-    expect(screen.getByRole("heading", { level: 1, name: "Медь fixture page" })).toBeInTheDocument();
+  it("renders a commodity page: the sign, two actions, the specification, offers and cases with checklists", async () => {
+    await renderAt("/ru/commodities/sulphur/");
+    const name = canon.commodities.find((c) => c.id === "sulphur")!.name.ru;
+    expect(screen.getByRole("heading", { level: 1, name })).toBeInTheDocument();
+    expect(document.querySelector("main")).toHaveTextContent("硫");
     expect(screen.getByText("Только товар несанкционного происхождения. Санкционный скрининг всех сторон обязателен.")).toBeInTheDocument();
-    for (const heading of ["Сделка глазами покупателя", "Что мы проверяем у продавца", "Типовая структура", "Маршрут документов по шагам", "На чём такие сделки останавливаются"]) {
-      expect(screen.getByRole("heading", { level: 2, name: heading })).toBeInTheDocument();
-    }
-    expect(screen.getByRole("link", { name: /Обсудить сделку/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: translations.ru["commodity.check"].replace("{commodity}", name) })).toHaveAttribute(
       "href",
-      `/ru/contact/?topic=${encodeURIComponent("Медь fixture page")}`,
+      "/ru/contact/?service=offer-check&commodity=sulphur",
     );
-    // A procedure without a commodity list applies to every commodity.
-    expect(screen.getByRole("heading", { level: 3, name: "Шаги покупателя" })).toBeInTheDocument();
+    expect(within(document.querySelector("main")!).getAllByRole("link", { name: translations.ru["cta.proposal"] })[0]).toHaveAttribute(
+      "href",
+      "/ru/contact/?intent=proposal&commodity=sulphur",
+    );
+    expect([...document.querySelectorAll("main section[id]")].map((s) => s.id)).toEqual(["spec", "offers", "results"]);
+    const spec = document.getElementById("spec")!;
+    expect(spec).toHaveTextContent("Fixture grade");
+    const table = within(spec).getByRole("table");
+    expect(within(table).getAllByRole("rowheader").map((th) => th.textContent)).toEqual(["Fixture parameter"]);
+    // One standard for every row: it goes in the line above, not in a column.
+    expect(within(table).getAllByRole("columnheader").map((th) => th.textContent)).toEqual(["Параметр", "Норма"]);
+    expect(document.getElementById("offers")).toHaveTextContent(translations.ru["commodity.offers.none"]);
+    const results = document.getElementById("results")!;
+    expect(within(results).getByRole("link", { name: translations.ru["commodity.checklists.loi"] })).toHaveAttribute("href", "/ru/documents/before-loi/");
+    // Money appears only in the case results.
+    const rest = [...document.querySelectorAll("main section")].filter((s) => s.id !== "results");
+    expect(rest.map((s) => s.textContent).join(" ")).not.toMatch(/USD/);
   });
 
-  it("renders a short commodity page: two paragraphs, the origin line and a contact link", async () => {
+  it("renders a short commodity page without the specification it does not have", async () => {
     await renderAt("/commodities/diesel/");
-    expect(screen.getByRole("heading", { level: 1, name: "Diesel short en" })).toBeInTheDocument();
-    expect(await screen.findByText("Second paragraph en.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: canon.commodities.find((c) => c.id === "diesel")!.name.en })).toBeInTheDocument();
+    expect(screen.getByText("Fixture breaks diesel en")).toBeInTheDocument();
     expect(screen.getByText("Only goods of non-sanctioned origin. Sanctions screening of all parties is mandatory.")).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { level: 2, name: "Typical structure" })).toBeNull();
-    expect(screen.getByRole("link", { name: /Discuss the deal/ })).toHaveAttribute(
-      "href",
-      `/contact/?topic=${encodeURIComponent("Diesel short en")}`,
-    );
+    expect(document.getElementById("spec")).toBeNull();
+    expect(within(document.getElementById("results")!).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual([
+      "/documents/before-loi/",
+      "/documents/before-payment/",
+    ]);
     await waitFor(() =>
       expect(document.querySelector('meta[name="robots"]')).toHaveAttribute("content", "index, follow, max-image-preview:large"),
     );
@@ -392,19 +408,19 @@ describe("content pages", () => {
 
   it("lists mandates with closed ones last and muted", async () => {
     await renderAt("/mandates/");
-    const cards = screen.getAllByRole("heading", { level: 3 }).map((h) => h.closest("a")!);
-    expect(cards.map((a) => a.getAttribute("href"))).toEqual([
+    const rows = within(screen.getByRole("table")).getAllByRole("row").slice(1);
+    expect(rows.map((r) => within(r).getByRole("link").getAttribute("href"))).toEqual([
       "/mandates/kps-m-2026-001/",
       "/mandates/kps-m-2026-002/",
       "/mandates/kps-m-2026-003/",
     ]);
-    expect(cards[2].className).toContain("opacity-60");
+    expect(rows[2].className).toContain("text-muted-foreground");
   });
 
   it("shows a mandate card, the way to the details and a request form with the number", async () => {
     await renderAt("/ru/mandates/kps-m-2026-001/");
     expect(screen.getByRole("heading", { level: 1, name: "Предложение: Алюминий" })).toBeInTheDocument();
-    for (const value of ["KPS-M-2026-001", "Fixture volume", "CIF (Incoterms 2020)", "Залив", "Документарный аккредитив"]) {
+    for (const value of ["KPS-M-2026-001", "Fixture volume", "CIF (Incoterms 2020)", "Персидский залив", "Документарный аккредитив"]) {
       expect(screen.getAllByText(value).length).toBeGreaterThan(0);
     }
     for (const step of ["Запрос", "KYC", "NDA", "Детали"]) {
@@ -412,14 +428,14 @@ describe("content pages", () => {
     }
     expect(screen.getByText(/действует по мандату как независимый консультант/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Как проходит сделка/ })).toHaveAttribute("href", "/ru/procedures/");
-    expect(screen.getByLabelText("Тема")).toHaveValue("KPS-M-2026-001");
-    expect(screen.getByLabelText("Я обращаюсь как")).toBeRequired();
+    expect(document.querySelector("#request form")).toHaveTextContent("По поводу: Мандат KPS-M-2026-001");
+    await waitFor(() => expect(screen.getByLabelText(/Что вам нужно\?/)).toHaveValue("deal-structuring"));
   });
 
-  it("shows open mandates on the home page and on the commodity page", async () => {
-    await renderAt("/");
-    expect(document.querySelector('#mandates a[href="/mandates/kps-m-2026-001/"]')).not.toBeNull();
-    expect(document.querySelector('#mandates a[href="/mandates/kps-m-2026-002/"]')).toBeNull();
+  it("shows open mandates on the commodity page", async () => {
+    await renderAt("/commodities/aluminium/");
+    expect(document.querySelector('#offers a[href="/mandates/kps-m-2026-001/"]')).not.toBeNull();
+    expect(document.querySelector('#offers a[href="/mandates/kps-m-2026-003/"]')).toBeNull();
   });
 
   it("returns 404 content for an unknown slug", async () => {

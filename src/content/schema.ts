@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { canon } from '../data/canon';
-import { DOCUMENT_ACCESS, DOCUMENT_GROUPS, DOCUMENT_ISSUERS } from './constants';
+import { DOCUMENT_ACCESS, DOCUMENT_GROUPS, DOCUMENT_ISSUERS, DOCUMENT_STAGES } from './constants';
 
 /**
  * Frontmatter schemas.
@@ -140,7 +140,7 @@ export type ProcedureStep = z.infer<typeof procedureStep>;
  * document; the file itself never goes on the site (there is no `file` field).
  * `preview`: one-page materials shown online as watermarked images, file on request.
  */
-export { DOCUMENT_GROUPS, DOCUMENT_ISSUERS, DOCUMENT_ACCESS };
+
 
 const documentText = {
   title: z.string({ required_error: 'is required' }).trim().min(1, 'is required'),
@@ -161,6 +161,7 @@ export const documentSchema = z
   .object({
     ...documentText,
     group: z.enum(DOCUMENT_GROUPS, { errorMap: () => ({ message: `expected one of: ${DOCUMENT_GROUPS.join(', ')}` }) }),
+    stage: z.enum(DOCUMENT_STAGES, { errorMap: () => ({ message: `expected one of: ${DOCUMENT_STAGES.join(', ')}` }) }),
     issuer: z.enum(DOCUMENT_ISSUERS, { errorMap: () => ({ message: `expected one of: ${DOCUMENT_ISSUERS.join(', ')}` }) }),
     version,
     date: isoDate,
@@ -179,20 +180,31 @@ export const documentTranslationSchema = z.object(documentText).strict();
  *   what we check and how we structure it — followed by the origin and screening line.
  */
 const text = z.string({ required_error: 'is required' }).trim().min(1, 'is required');
+/** One row of a typical specification from a named standard. LNG rows carry no limit. */
+const specRow = z.object({ parameter: text, limit: text.optional(), standard: text.optional() }).strict();
+const commodityStructure = z.object({ basis: text, payment: text, inspection: text }).strict();
+
 const commodityCommon = {
   title: text,
   description: text.pipe(z.string().max(160, 'must be 160 characters or fewer')),
   summary: text.pipe(z.string().max(220, 'must be 220 characters or fewer')),
+  /** Where deals in this commodity usually break, for the top of the page (1–2 sentences). */
+  breaks: text.pipe(z.string().max(280, 'must be 280 characters or fewer')),
+  /** Grade or standard in one line, e.g. "LME Grade A cathode". */
+  grade: text.pipe(z.string().max(60, 'must be 60 characters or fewer')).optional(),
+  /** Typical basis in a few words, for the index card. */
+  basisShort: text.pipe(z.string().max(60, 'must be 60 characters or fewer')),
+  spec: z.array(specRow).optional(),
+  /** A line under the specification: alternative standards, or where the values come from. */
+  specNote: text.pipe(z.string().max(200, 'must be 200 characters or fewer')).optional(),
 };
 
-export const commodityFullSchema = z
+const commodityFullSchema = z
   .object({
     format: z.literal('full').default('full'),
     ...commodityCommon,
     checks: z.array(text).min(3, 'needs at least three checks'),
-    structure: z
-      .object({ basis: text, payment: text, inspection: text })
-      .strict(),
+    structure: commodityStructure,
     route: z
       .array(z.object({ title: text, detail: text }).strict())
       .min(3, 'needs at least three steps'),
@@ -200,7 +212,14 @@ export const commodityFullSchema = z
   })
   .strict();
 
-export const commodityShortSchema = z.object({ format: z.literal('short'), ...commodityCommon }).strict();
+const commodityShortSchema = z
+  .object({
+    format: z.literal('short'),
+    ...commodityCommon,
+    structure: commodityStructure.optional(),
+    stalls: z.array(text).min(2, 'needs at least two points').optional(),
+  })
+  .strict();
 
 /** Picks the schema by `format`, so errors name the fields of that format. */
 export const commoditySchemaFor = (raw: unknown) =>
@@ -215,10 +234,10 @@ export type CommodityPage = CommodityFullPage | CommodityShortPage;
  * any other field stops the build. en.md carries every field; ru.md and zh.md carry
  * only a translated description (and their own draft flag). Mandate files have no body.
  */
-export const MANDATE_ID = /^KPS-M-\d{4}-\d{3}$/;
-export const ORIGIN_REGIONS = ['Gulf', 'Central Asia', 'Southeast Asia', 'Other'] as const;
-export const INSTRUMENTS = ['DLC', 'SBLC', 'DLC or SBLC'] as const;
-export const MANDATE_STATUSES = ['open', 'in-work', 'closed'] as const;
+const MANDATE_ID = /^KPS-M-\d{4}-\d{3}$/;
+const ORIGIN_REGIONS = ['Gulf', 'Central Asia', 'Southeast Asia', 'Other'] as const;
+const INSTRUMENTS = ['DLC', 'SBLC', 'DLC or SBLC'] as const;
+const MANDATE_STATUSES = ['open', 'in-work', 'closed'] as const;
 
 const mandateDescription = z
   .string({ required_error: 'is required' })
@@ -256,6 +275,69 @@ export const mandateTranslationSchema = z
   .strict();
 
 export type MandateMeta = z.infer<typeof mandateSchema>;
+
+/**
+ * content/cases/<slug>/{en,ru,zh}.md — anonymised results. Frontmatter only: no names, no
+ * prices; the route starts in a region. Sums of money are allowed in `metricValue` only, as
+ * USD ("USD 480,000", "USD 10M+ / month"); load.ts checks every other field like a mandate.
+ */
+const CASE_ORIGIN_REGIONS = ['Gulf', 'Central Asia', 'Southeast Asia', 'Other'] as const;
+const SERVICE_SLUGS = ['deal-structuring', 'compliance-kyc', 'fractional-coo'] as const;
+
+const caseLine = (max: number) =>
+  z.string({ required_error: 'is required' }).trim().min(1, 'is required').max(max, `must be ${max} characters or fewer`);
+
+/** "Gulf → China": a region, an arrow, a country or a region. */
+const caseRoute = z
+  .string({ required_error: 'is required' })
+  .trim()
+  .max(60, 'must be 60 characters or fewer')
+  .regex(/^[^→]+ → [^→]+$/, 'expected "<region> → <country or region>"');
+
+const caseText = {
+  /** Shown as the eyebrow; free text, e.g. "Crude oil". */
+  commodity: caseLine(30),
+  route: caseRoute,
+  /** The result, as the card title. */
+  title: caseLine(120),
+  problem: caseLine(200),
+  action: caseLine(200),
+  result: caseLine(200),
+  /** Optional headline figure, short and large: "7 days", "USD 480,000". The only field with sums (USD). */
+  metricValue: caseLine(24).optional(),
+  /** Small caption under the figure: "red flag before any payment". */
+  metricLabel: caseLine(80).optional(),
+  /** One or two sentences for the home page: what happened and what we did. */
+  summary: caseLine(200).optional(),
+  draft: z.boolean().default(false),
+};
+
+export const caseSchema = z
+  .object({
+    ...caseText,
+    route: caseRoute.refine(
+      (route) => (CASE_ORIGIN_REGIONS as readonly string[]).includes(route.split(' → ')[0]),
+      `the route starts in a region: ${CASE_ORIGIN_REGIONS.join(', ')}`,
+    ),
+    /** Service pages that show this case. */
+    services: z.array(z.enum(SERVICE_SLUGS, { errorMap: () => ({ message: `expected one of: ${SERVICE_SLUGS.join(', ')}` }) })).default([]),
+    /** The stamp beside the case: stop (止) for a stopped deal, join (合) for a deal put together. */
+    stamp: z.enum(['stop', 'join'], { errorMap: () => ({ message: 'expected stop or join' }) }).optional(),
+    /** Sort key: 1 comes first; the home page shows the first three. */
+    order: z.number({ required_error: 'is required', invalid_type_error: 'expected a number' }).int().min(1),
+    year: z
+      .number({ invalid_type_error: 'expected a year, e.g. 2025' })
+      .int()
+      .min(Number(canon.practiceSince), `must be ${canon.practiceSince} or later`)
+      .max(2100)
+      .optional(),
+  })
+  .strict();
+
+/** Translations: the same texts; commodity and route fall back to en.md when left out. */
+export const caseTranslationSchema = z
+  .object({ ...caseText, commodity: caseText.commodity.optional(), route: caseRoute.optional() })
+  .strict();
 
 export type InsightMeta = z.infer<typeof insightSchema>;
 export type NewsMeta = z.infer<typeof newsSchema>;

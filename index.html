@@ -30,13 +30,15 @@
          JSON-LD and the html lang attribute are set by src/components/SEO.tsx at build
          time from src/data/canon.ts. -->
 
-    <!-- Icons -->
+    <!-- Icons: the seal 合 (scripts/make-icons.mjs) -->
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <!-- Fonts are self-hosted: src/styles/fonts.css (Inter, Manrope), Noto Sans SC on /zh/ only. -->
+    <!-- Fonts are self-hosted: src/styles/fonts.css (Spectral, Golos Text, the KPS Seal subset), Noto Sans SC on /zh/ only. -->
+    <link rel="preload" href="/fonts/kps-seal-900.woff2" as="font" type="font/woff2" crossorigin />
   </head>
   <body>
     <div id="root"></div>

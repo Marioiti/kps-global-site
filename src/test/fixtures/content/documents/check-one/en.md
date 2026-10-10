@@ -1,6 +1,7 @@
 ---
 title: "Test checklist"
 group: checklists
+stage: before-payment
 issuer: kps
 dealStep: "Before payment"
 summary: "A test checklist."

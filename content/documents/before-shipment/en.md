@@ -1,6 +1,7 @@
 ---
 title: "Checklist: Before Shipment"
 group: checklists
+stage: before-shipment
 issuer: kps
 dealStep: "Before Shipment"
 summary: "What has to be in place before the cargo is loaded. The same for every commodity."

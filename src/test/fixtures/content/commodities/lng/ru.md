@@ -12,6 +12,8 @@ route:
   - { title: "Route two", detail: "Detail two" }
   - { title: "Route three", detail: "Detail three" }
 stalls: ["Stall one", "Stall two"]
+breaks: "Fixture breaks lng ru"
+basisShort: "Fixture basis lng"
 ---
 
 Fixture body for lng in ru, see [contact](/contact/).

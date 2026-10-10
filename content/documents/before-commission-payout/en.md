@@ -1,6 +1,7 @@
 ---
 title: "Checklist: Before Commission Payout"
 group: checklists
+stage: before-payment
 issuer: kps
 dealStep: "Before Commission Payout"
 summary: "TODO: summary."

@@ -1,6 +1,7 @@
 ---
 title: "Deal Audit"
 group: services
+stage: services
 issuer: kps
 dealStep: "TODO"
 summary: "TODO: summary."

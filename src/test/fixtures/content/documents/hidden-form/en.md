@@ -1,6 +1,7 @@
 ---
 title: "Hidden form"
 group: engagement
+stage: contracts
 issuer: kps
 dealStep: "Later"
 summary: "Not published."

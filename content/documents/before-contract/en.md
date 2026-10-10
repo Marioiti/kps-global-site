@@ -1,6 +1,7 @@
 ---
 title: "Checklist: Before Contract"
 group: checklists
+stage: before-contract
 issuer: kps
 dealStep: "Before Contract"
 summary: "What to check before the contract is signed. The same for every commodity."

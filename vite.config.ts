@@ -6,6 +6,13 @@ import type {} from "vite-react-ssg"; // adds `ssgOptions` to the Vite config ty
 import { prerenderPaths } from "./src/i18n/locales";
 import { contentPlugin } from "./src/content/vite-plugin";
 import { assertNoDocumentFiles, writeContentOutputs, writePagePreviews } from "./src/content/build-output";
+import { improvePageHead, type BuildManifest } from "./src/content/page-head";
+import { checkBuiltPages } from "./src/content/page-check";
+
+/** The client build manifest, read once while the pages are prerendered. */
+let clientManifest: BuildManifest | null = null;
+const readClientManifest = (): BuildManifest =>
+  (clientManifest ??= JSON.parse(fs.readFileSync(path.resolve(__dirname, "dist/.vite/manifest.json"), "utf8")));
 
 /** Rendered through the catch-all route, then moved to dist/404.html. */
 const NOT_FOUND_ROUTE = "/404";
@@ -109,9 +116,11 @@ export default defineConfig({
       return [...new Set([...prerenderPaths(), ...articles, NOT_FOUND_ROUTE])];
     },
     // Helmet tags are injected right after <head>; keep the charset declaration first.
-    onPageRendered: (_route, html) => {
+    onPageRendered: (route, html) => {
       const charset = html.match(/<meta charset="[^"]*">/i)?.[0];
-      return charset ? html.replace(charset, "").replace("<head>", `<head>${charset}`) : html;
+      const sorted = charset ? html.replace(charset, "").replace("<head>", `<head>${charset}`) : html;
+      const language = route.match(/^\/?(ru|zh)(\/|$)/)?.[1] ?? "en";
+      return improvePageHead(sorted, readClientManifest(), language);
     },
     onFinished: async (dir) => {
       const outDir = path.resolve(__dirname, dir);
@@ -128,6 +137,9 @@ export default defineConfig({
       fs.copyFileSync(path.resolve(__dirname, "CNAME"), path.join(outDir, "CNAME"));
       // No PDF, DOCX or XLSX ever leaves the repository through the site.
       assertNoDocumentFiles(outDir);
+      // One canonical, unique titles and descriptions, JSON-LD that parses, a sitemap without noindex pages.
+      const problems = checkBuiltPages(outDir);
+      if (problems.length) throw new Error(`Built pages:\n${problems.map((p) => `  - ${p}`).join("\n")}`);
     },
   },
 });

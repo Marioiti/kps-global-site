@@ -1,11 +1,10 @@
 import React from 'react';
 import { Link, useLoaderData, useParams } from 'react-router-dom';
-import { ArrowLeft, Linkedin } from 'lucide-react';
-import PageHeader from '@/components/PageHeader';
+import GlyphHero from '@/components/v3/GlyphHero';
+import EntryRows from '@/components/v3/EntryRows';
+import RuledList from '@/components/v3/RuledList';
 import SEO from '@/components/SEO';
-import ContentCard from '@/components/ContentCard';
-import ContactCta from '@/components/ContactCta';
-import SectionHeader from '@/components/SectionHeader';
+import FinalCta from '@/components/home/FinalCta';
 import NotFound from '@/pages/NotFound';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEntryLabel } from '@/hooks/use-entry-label';
@@ -14,11 +13,11 @@ import { canon } from '@/data/canon';
 import { formatDate } from '@/i18n/format';
 import { absoluteUrl, localizePath } from '@/i18n/locales';
 import ProcedureSteps from '@/components/ProcedureSteps';
-import DocumentsBlock from '@/components/DocumentsBlock';
 import {
   displayVersion,
   documentsByGroups,
   entryPath,
+  entryUrl,
   findEntry,
   publishedLanguages,
   relatedByCommodity,
@@ -33,12 +32,6 @@ export interface ArticleData {
   body: ContentBody | null;
 }
 
-const BACK_LINK: Record<Collection, string> = {
-  insights: 'article.backInsights',
-  news: 'article.backNews',
-  procedures: 'procedures.back',
-  documents: 'documents.back',
-};
 
 /** /insights/, /news/ and /procedures/ items. The body comes from the route loader (build-time data). */
 const Article: React.FC<{ collection: Collection }> = ({ collection }) => {
@@ -60,6 +53,7 @@ const Article: React.FC<{ collection: Collection }> = ({ collection }) => {
   const sectionTitle = t(`nav.${collection}`);
   const author = canon.founder;
   const related = collection === 'news' ? resolveRelated(entry) : relatedByCommodity(entry);
+  const standardForms = collection === 'procedures' ? documentsByGroups(['standard-forms']) : [];
 
   return (
     <>
@@ -94,44 +88,38 @@ const Article: React.FC<{ collection: Collection }> = ({ collection }) => {
         ]}
       />
 
-      <PageHeader label={label(entry)} title={version.title}>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-          <time dateTime={entry.date}>{formatDate(entry.date, language)}</time>
-          <span aria-hidden="true">·</span>
-          <span>{t('article.readingTime', { minutes: version.readingMinutes })}</span>
-          {author && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>
+      <GlyphHero
+        crumb={{ label: sectionTitle, path: `/${collection}/` }}
+        current={label(entry)}
+        title={version.title}
+        titleLang={version.language}
+        lead={
+          <p className="text-[15px] text-muted-foreground">
+            <time dateTime={entry.date}>{formatDate(entry.date, language)}</time>
+            {' · '}
+            {t('article.readingTime', { minutes: version.readingMinutes })}
+            {author && (
+              <>
+                {' · '}
                 {t('article.author')}:{' '}
-                <a href={author.linkedin} target="_blank" rel="noopener noreferrer" className="text-foreground/80 hover:text-primary">
+                <a href={author.linkedin} target="_blank" rel="noopener noreferrer" className="link-v3 text-foreground">
                   {author.name[language]}
                 </a>
                 , {author.role[language]}
-              </span>
-            </>
-          )}
-        </div>
-      </PageHeader>
+              </>
+            )}
+          </p>
+        }
+      />
 
-      <section className="py-16 md:py-20 relative">
-        <div className="max-w-3xl mx-auto px-6 lg:px-8">
-          <Link
-            to={localizePath(`/${collection}/`, language)}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-10"
-          >
-            <ArrowLeft size={16} />
-            {t(BACK_LINK[collection])}
-          </Link>
-
-          {isFallback && (
-            <p className="mb-8 text-sm text-muted-foreground border-l-2 border-accent pl-4">{t('article.fallbackNote')}</p>
-          )}
+      <section className="border-t border-border">
+        <div className="page-container section-y [&>*]:max-w-3xl">
+          {isFallback && <p className="mb-8 text-[15px] text-muted-foreground">{t('article.fallbackNote')}</p>}
 
           <article
             lang={version.language}
             onClick={onBodyClick}
-            className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-a:underline-offset-4"
+            className="prose dark:prose-invert max-w-none text-body prose-p:text-body prose-headings:font-display prose-headings:font-medium prose-a:text-foreground prose-a:underline-offset-4"
             dangerouslySetInnerHTML={{ __html: body.html }}
           />
 
@@ -140,23 +128,17 @@ const Article: React.FC<{ collection: Collection }> = ({ collection }) => {
           {collection === 'procedures' && (
             <Link
               to={`${localizePath('/contact/', language)}?topic=${encodeURIComponent(`${t('procedure.request')}: ${version.title}`)}`}
-              className="mt-10 group inline-flex items-center gap-3 px-7 py-3.5 bg-primary text-primary-foreground text-sm tracking-wide font-semibold hover:bg-primary/90 transition-all duration-300 rounded-sm"
+              className="btn-accent mt-10"
             >
               {t('procedure.request')}
             </Link>
           )}
 
           {entry.linkedinUrl && (
-            <div className="mt-14 border border-primary/20 bg-primary/[0.03] rounded-sm p-8">
-              <span className="text-xs tracking-[0.2em] uppercase text-primary block mb-3">{t('article.discussTitle')}</span>
-              <p className="text-foreground/80 leading-relaxed mb-5">{t('article.discussText')}</p>
-              <a
-                href={entry.linkedinUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline underline-offset-4"
-              >
-                <Linkedin size={16} />
+            <div className="mt-14 pt-6 border-t border-border">
+              <h2 className="font-display text-2xl text-foreground mb-2">{t('article.discussTitle')}</h2>
+              <p className="text-body mb-4">{t('article.discussText')}</p>
+              <a href={entry.linkedinUrl} target="_blank" rel="noopener noreferrer" className="link-v3 text-base">
                 {t('article.discussLink')}
               </a>
             </div>
@@ -165,29 +147,41 @@ const Article: React.FC<{ collection: Collection }> = ({ collection }) => {
       </section>
 
       {related.length > 0 && (
-        <section className="py-24 bg-surface relative">
-          <div className="absolute top-0 left-0 right-0 line-rule" />
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <SectionHeader label={sectionTitle} title={t('article.related')} className="mb-12" />
-            <div className="grid md:grid-cols-3 gap-8">
-              {related.map((item) => (
-                <ContentCard key={`${item.collection}/${item.slug}`} entry={item} />
-              ))}
-            </div>
+        <section className="bg-surface">
+          <div className="page-container section-y">
+            <h2 className="h2-v3 mb-6">{t('article.related')}</h2>
+            <EntryRows entries={related} />
           </div>
         </section>
       )}
 
-      {collection === 'procedures' && (
-        <DocumentsBlock
-          id="procedure-documents"
-          documents={documentsByGroups(['standard-forms'])}
-          label={t('documents.related')}
-          title={t('documents.group.standard-forms')}
-        />
+      {collection === 'procedures' && standardForms.length > 0 && (
+        <section id="procedure-documents" className="border-t border-border">
+          <div className="page-container section-y">
+            <h2 className="h2-v3 mb-6">{t('documents.group.standard-forms')}</h2>
+            <RuledList
+              items={standardForms.map((doc) => {
+                const v = displayVersion(doc, language);
+                return {
+                  key: doc.slug,
+                  content: (
+                    <p className="py-3.5">
+                      <Link to={entryUrl(doc, language)} lang={v.language} className="font-display text-[21px] text-foreground underline-offset-[5px] hover:underline">
+                        {v.title}
+                      </Link>
+                      <span lang={v.language} className="block text-[15px] text-body">
+                        {v.description}
+                      </span>
+                    </p>
+                  ),
+                };
+              })}
+            />
+          </div>
+        </section>
       )}
 
-      <ContactCta title={t('article.ctaTitle')} subtitle={t('article.ctaSubtitle')} topic={version.title} />
+      <FinalCta title={t('article.ctaTitle')} subtitle={t('article.ctaSubtitle')} topic={version.title} />
     </>
   );
 };

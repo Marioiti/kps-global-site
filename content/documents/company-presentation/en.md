@@ -1,6 +1,7 @@
 ---
 title: "Company Presentation"
 group: counterparty-pack
+stage: before-loi
 issuer: kps
 dealStep: "Introduction"
 summary: "Presentation of PT KPS Global Solutions for counterparties."

@@ -67,20 +67,23 @@ export const canon = {
     { value: '200+', labelKey: 'stats.supplierMandates' },
   ] as Stat[],
 
+  /** Offices in the order they are shown: city, region where useful, country. */
   offices: [
     {
-      city: { en: 'Sanya', ru: 'Санья', zh: '三亚' } as Localized,
-      country: { en: 'China', ru: 'Китай', zh: '中国' } as Localized,
+      city: { en: 'Denpasar', ru: 'Денпасар', zh: '登巴萨' } as Localized,
+      region: { en: 'Bali', ru: 'Бали', zh: '巴厘岛' } as Localized | null,
+      country: { en: 'Indonesia', ru: 'Индонезия', zh: '印度尼西亚' } as Localized,
     },
     {
-      city: { en: 'Denpasar', ru: 'Денпасар', zh: '登巴萨' } as Localized,
-      country: { en: 'Indonesia', ru: 'Индонезия', zh: '印度尼西亚' } as Localized,
+      city: { en: 'Sanya', ru: 'Санья', zh: '三亚' } as Localized,
+      region: null as Localized | null,
+      country: { en: 'China', ru: 'Китай', zh: '中国' } as Localized,
     },
   ],
 
   corridor: {
     suppliers: [
-      { en: 'Gulf', ru: 'Залив', zh: '海湾地区' },
+      { en: 'Gulf', ru: 'Персидский залив', zh: '海湾地区' },
       { en: 'Central Asia', ru: 'Центральная Азия', zh: '中亚' },
     ] as Localized[],
     buyers: [
@@ -97,10 +100,31 @@ export const canon = {
     { id: 'diesel', name: { en: 'Diesel', ru: 'Дизельное топливо', zh: '柴油' } as Localized },
   ],
 
-  /** Fixed-scope products: scope and turnaround only, fees on request. */
+  /**
+   * Fixed-scope products. The two prices are the only ones on the site; every other
+   * service has its scope and fee fixed before work starts. A no-break space keeps
+   * "USD" and the amount on one line.
+   */
   products: {
-    offerCheck: { name: 'Offer Check', turnaroundHours: '48' },
-    dealHealthCheck: { name: 'Deal Health Check', turnaroundBusinessDays: '7' },
+    offerCheck: { name: 'Offer Check', turnaroundHours: '48', priceFrom: 'USD\u00a01,000' },
+    dealHealthCheck: {
+      name: 'Deal Health Check',
+      turnaroundBusinessDays: '7',
+      priceFrom: 'USD\u00a03,500',
+      /** Days within which the fee is credited against Deal Architecture. */
+      creditDays: '30',
+    },
+    /** A typical counterparty check under Compliance & KYC. Without a price the site shows the turnaround only. */
+    kycCheck: {
+      turnaroundBusinessDays: '3–5',
+      priceFrom: 'USD\u00a0500' as string | null,
+    },
+    /** Fractional COO: a monthly retainer; no price on the site. */
+    fractionalCoo: {
+      minMonths: '3',
+      daysPerWeek: '1–3',
+      noticeDays: '30',
+    },
   },
 
   contacts: {
@@ -127,9 +151,33 @@ export const canon = {
     } as Localized,
     photo: '/team/andrei-orlov.jpg' as string | null,
     linkedin: 'https://www.linkedin.com/in/anorlov/',
+    /** The bio as short facts for /about/ (same facts, nothing added). */
+    facts: {
+      en: [
+        'Structures and runs cross-border deals in aluminium, LNG, sulphur, copper and diesel between the Gulf, Central Asia, China and Southeast Asia.',
+        'Takes operating roles in international projects as a Fractional COO.',
+        'Sees the same cargo from both sides: the offers suppliers send, and what a buyer and its bank will accept.',
+        'Before KPS: more than 20 years building operations in China, Hong Kong, the UAE, Singapore, Indonesia and Russia, including a $35M development portfolio in Bali.',
+        'Works in English and Russian, with elementary Mandarin.',
+      ],
+      ru: [
+        'Структурирует и ведёт трансграничные сделки с алюминием, СПГ, серой, медью и дизельным топливом между Персидским заливом, Центральной Азией, Китаем и Юго-Восточной Азией.',
+        'Берёт операционные роли в международных проектах как Fractional COO.',
+        'Видит один и тот же груз с двух сторон: какие оферты присылают поставщики и что примут покупатель и его банк.',
+        'До KPS — более 20 лет выстраивал операции в Китае, Гонконге, ОАЭ, Сингапуре, Индонезии и России, включая девелоперский портфель на $35 млн на Бали.',
+        'Работает на английском и русском, владеет китайским на базовом уровне.',
+      ],
+      zh: [
+        '在海湾地区、中亚、中国和东南亚之间，构建并推进铝、液化天然气、硫磺、铜和柴油的跨境交易。',
+        '以 Fractional COO 的身份在国际项目中承担运营职责。',
+        '从两端看待同一批货物：供应商发出的报价，以及买方及其银行能够接受的条件。',
+        '创立 KPS 之前，在中国、香港、阿联酋、新加坡、印度尼西亚和俄罗斯从事运营建设超过 20 年，其中包括巴厘岛一个 3500 万美元的开发项目组合。',
+        '工作语言为英语和俄语，并具备基础中文能力。',
+      ],
+    } as Record<'en' | 'ru' | 'zh', string[]>,
     bio: {
       en: 'Andrei Orlov is the founder and director of KPS Global Solutions. He structures and runs cross-border commodity deals in aluminium, LNG, sulphur, copper and diesel between suppliers in the Gulf and Central Asia and buyers in China and Southeast Asia, and takes operating roles in international projects as a Fractional COO. He sees the same cargo from both sides: the offers suppliers send, and what a buyer and its bank will accept. Before KPS he spent more than 20 years building operations in China, Hong Kong, the UAE, Singapore, Indonesia and Russia, including a $35M development portfolio in Bali. He works in English and Russian, with elementary Mandarin.',
-      ru: 'Андрей Орлов — основатель и директор KPS Global Solutions. Он структурирует и ведёт трансграничные сделки с сырьём — алюминием, СПГ, серой, медью и дизельным топливом — между поставщиками Залива и Центральной Азии и покупателями в Китае и Юго-Восточной Азии, а также берёт на себя операционные роли в международных проектах как Fractional COO. Он видит один и тот же груз с двух сторон: какие оферты присылают поставщики и что примут покупатель и его банк. До KPS он более 20 лет выстраивал операции в Китае, Гонконге, ОАЭ, Сингапуре, Индонезии и России, включая девелоперский портфель на $35 млн на Бали. Работает на английском и русском, владеет китайским на базовом уровне.',
+      ru: 'Андрей Орлов — основатель и директор KPS Global Solutions. Он структурирует и ведёт трансграничные сделки с сырьём — алюминием, СПГ, серой, медью и дизельным топливом — между поставщиками Персидского залива и Центральной Азии и покупателями в Китае и Юго-Восточной Азии, а также берёт на себя операционные роли в международных проектах как Fractional COO. Он видит один и тот же груз с двух сторон: какие оферты присылают поставщики и что примут покупатель и его банк. До KPS он более 20 лет выстраивал операции в Китае, Гонконге, ОАЭ, Сингапуре, Индонезии и России, включая девелоперский портфель на $35 млн на Бали. Работает на английском и русском, владеет китайским на базовом уровне.',
       zh: '安德烈·奥尔洛夫是 KPS Global Solutions 的创始人兼董事。他在海湾地区和中亚的供应商与中国及东南亚的买方之间，构建并推进铝、液化天然气、硫磺、铜和柴油的跨境大宗商品交易，并以 Fractional COO 的身份在国际项目中承担运营职责。他从两端看待同一批货物：供应商发出的报价，以及买方及其银行能够接受的条件。创立 KPS 之前，他在中国、香港、阿联酋、新加坡、印度尼西亚和俄罗斯从事运营建设超过 20 年，其中包括巴厘岛一个 3500 万美元的开发项目组合。他的工作语言为英语和俄语，并具备基础中文能力。',
     } as Localized,
   } as {
@@ -137,9 +185,21 @@ export const canon = {
     role: Localized;
     photo: string | null;
     linkedin: string;
+    facts: Record<'en' | 'ru' | 'zh', string[]>;
     bio: Localized;
   } | null,
 };
+
+/**
+ * A price from canon.products in the page's language: "USD 1,000" in English and Chinese,
+ * "USD 1 000" in Russian (no-break spaces keep it on one line).
+ */
+export const formatPrice = (price: string, language: 'en' | 'ru' | 'zh'): string =>
+  language === 'ru' ? price.replace(/(\d),(?=\d{3}\b)/g, '$1\u00a0') : price;
+
+/** An office in one line, e.g. "Denpasar, Bali, Indonesia". */
+export const officeLine = (office: (typeof canon.offices)[number], language: 'en' | 'ru' | 'zh'): string =>
+  [office.city[language], office.region?.[language], office.country[language]].filter(Boolean).join(language === 'zh' ? '，' : ', ');
 
 /** One-line legal address, e.g. for the footer, privacy policy and JSON-LD. */
 export const legalAddressLine = (): string => {
