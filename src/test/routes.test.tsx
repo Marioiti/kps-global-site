@@ -120,7 +120,7 @@ describe("link previews", () => {
   it("gives every indexed fixed page its own preview image", async () => {
     await renderAt("/ru/services/deal-structuring/");
     await waitFor(() => expect(ogImage()).toBe("https://kpsglobal.id/og/page-services-deal-structuring-ru.png"));
-    expect(document.head.querySelector('meta[property="og:image:height"]')?.getAttribute("content")).toBe("627");
+    expect(document.head.querySelector('meta[property="og:image:height"]')?.getAttribute("content")).toBe("630");
   });
 
   it("keeps the site-wide image for pages that are not indexed", async () => {

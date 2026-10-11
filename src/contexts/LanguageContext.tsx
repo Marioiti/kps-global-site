@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Head } from 'vite-react-ssg';
 import { translations, interpolate, Language, TranslationVars } from '@/i18n/translations';
 import { getLanguageFromPath } from '@/i18n/locales';
-import { canon, formatPrice } from '@/data/canon';
+import { canonVars } from '@/i18n/canon-vars';
 import { feedPath } from '@/seo/feed';
 
 interface LanguageContextType {
@@ -12,22 +12,6 @@ interface LanguageContextType {
   t: (key: string, vars?: TranslationVars) => string;
 }
 
-const CANON_VARS = (language: Language): TranslationVars => ({
-  brand: canon.brand,
-  legalName: canon.legal.name,
-  email: canon.contacts.email,
-  // The only prices on the site, with their terms (see canon.products).
-  offerPrice: formatPrice(canon.products.offerCheck.priceFrom, language),
-  offerHours: canon.products.offerCheck.turnaroundHours,
-  healthPrice: formatPrice(canon.products.dealHealthCheck.priceFrom, language),
-  healthDays: canon.products.dealHealthCheck.turnaroundBusinessDays,
-  creditDays: canon.products.dealHealthCheck.creditDays,
-  kycDays: canon.products.kycCheck.turnaroundBusinessDays,
-  kycPrice: canon.products.kycCheck.priceFrom ? formatPrice(canon.products.kycCheck.priceFrom, language) : '',
-  cooMinMonths: canon.products.fractionalCoo.minMonths,
-  cooDays: canon.products.fractionalCoo.daysPerWeek,
-  cooNotice: canon.products.fractionalCoo.noticeDays,
-});
 
 // Chinese webfont: self-hosted and split by unicode-range (see `notoSansSc` in
 // vite.config.ts); used on /zh/ pages only. Prerendered /zh/ pages link it after the first
@@ -55,7 +39,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const t = useCallback(
     (key: string, vars?: TranslationVars): string =>
-      interpolate(translations[language][key] || key, { ...CANON_VARS(language), ...vars }),
+      interpolate(translations[language][key] || key, { ...canonVars(language), ...vars }),
     [language],
   );
 

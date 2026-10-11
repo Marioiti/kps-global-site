@@ -13,7 +13,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { localizePath } from '@/i18n/locales';
 import { canon } from '@/data/canon';
 import { getCases } from '@/content';
-import { faqJsonLd, organizationJsonLd } from '@/seo/jsonld';
+import { faqJsonLd, websiteJsonLd } from '@/seo/jsonld';
 
 /** Sections of the old one-page site and where they live now. */
 const LEGACY_ANCHORS: Record<string, string> = {
@@ -52,7 +52,7 @@ const Index: React.FC = () => {
         description={t('seo.home.description')}
         socialDescription={t('seo.home.socialDescription')}
         path="/"
-        jsonLd={[organizationJsonLd(language, t('seo.home.description')), faqJsonLd(questions)]}
+        jsonLd={[websiteJsonLd(language, t('seo.home.description')), faqJsonLd(questions)]}
       />
 
       {/* Seal, the promise and the two actions. */}

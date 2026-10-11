@@ -2,6 +2,7 @@ import React from 'react';
 
 const SIZES = {
   36: 'w-9 h-9 text-[23px] rounded-[3px]',
+  64: 'w-16 h-16 text-[42px] rounded-[4px]',
   160: 'w-40 h-40 text-[118px] rounded-[5px]',
   220: 'w-[220px] h-[220px] text-[162px] rounded-[5px]',
   300: 'w-[300px] h-[300px] text-[220px] rounded-[6px]',

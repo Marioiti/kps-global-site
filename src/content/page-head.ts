@@ -1,6 +1,7 @@
 /**
  * Changes to the <head> of every prerendered page: the language's interface strings start
- * loading together with the main script, and the Chinese font stylesheet does not hold the first paint.
+ * loading together with the main script, the two main fonts (Spectral 500, Golos Text 400) in the
+ * language's script are preloaded, and the Chinese font stylesheet does not hold the first paint.
  */
 
 /** One chunk of the client build manifest (.vite/manifest.json). */
@@ -22,8 +23,22 @@ const NOTO_LINK =
   `<link id="noto-sans-sc" rel="stylesheet" href="${NOTO_HREF}" media="print" onload="${NOTO_ON}">` +
   `<noscript><link rel="stylesheet" href="${NOTO_HREF}"></noscript>`;
 
-export function improvePageHead(html: string, manifest: BuildManifest, language: string): string {
+/** The built files of Spectral 500 and Golos Text 400 for the page's script: Cyrillic on /ru/, else Latin. */
+export const mainFonts = (assetFiles: string[], language: string): string[] => {
+  const subset = language === 'ru' ? 'cyrillic' : 'latin';
+  return ['spectral', 'golos-text'].flatMap((family) => {
+    const weight = family === 'spectral' ? 500 : 400;
+    const file = assetFiles.find((name) => name.startsWith(`${family}-${subset}-${weight}-normal-`) && name.endsWith('.woff2'));
+    return file ? [`/assets/${file}`] : [];
+  });
+};
+
+export function improvePageHead(html: string, manifest: BuildManifest, language: string, assetFiles: string[] = []): string {
   let out = html;
+  const fonts = mainFonts(assetFiles, language)
+    .map((href) => `<link rel="preload" href="${href}" as="font" type="font/woff2" crossorigin="">`)
+    .join('');
+  if (fonts) out = out.replace('</head>', `${fonts}</head>`);
   const strings = manifest[`src/i18n/strings/${language}.ts`];
   if (strings) {
     out = out.replace('</head>', `<link rel="modulepreload" crossorigin="" href="/${strings.file}"></head>`);

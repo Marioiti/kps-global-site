@@ -5,7 +5,7 @@ import { Resvg } from '@resvg/resvg-js';
 import { OG_SIZE } from '../content/preview';
 
 /**
- * Link-preview images: 1200 × 627 PNG per article (dist/og/) and the site-wide
+ * Link-preview images: 1200 × 630 PNG per article and page (dist/og/) and the site-wide
  * dist/og-image.png (1200 × 630), in design v3: the seal 合, the title, the name; rendered at build time.
  *
  * Fonts (woff, which satori reads; woff2 it does not): Spectral 500 for the title and the name,

@@ -5,14 +5,24 @@ import path from "path";
 import type {} from "vite-react-ssg"; // adds `ssgOptions` to the Vite config type
 import { prerenderPaths } from "./src/i18n/locales";
 import { contentPlugin } from "./src/content/vite-plugin";
+import { cardPlugin, unlistCardData } from "./src/card/vite-plugin";
 import { assertNoDocumentFiles, writeContentOutputs, writePagePreviews } from "./src/content/build-output";
 import { improvePageHead, type BuildManifest } from "./src/content/page-head";
-import { checkBuiltPages } from "./src/content/page-check";
+import { checkBuiltPages, checkCardPage, checkInternalLinks, checkVerbatimFiles } from "./src/content/page-check";
+import { canon } from "./src/data/canon";
+import { parsePrice } from "./src/seo/price";
+
+/** The prices the canon publishes, as numbers: the only ones structured data may carry. */
+const canonPrices = () =>
+  Object.values(canon.products).flatMap((product) => ("priceFrom" in product && product.priceFrom ? [parsePrice(product.priceFrom).amount] : []));
 
 /** The client build manifest, read once while the pages are prerendered. */
 let clientManifest: BuildManifest | null = null;
 const readClientManifest = (): BuildManifest =>
   (clientManifest ??= JSON.parse(fs.readFileSync(path.resolve(__dirname, "dist/.vite/manifest.json"), "utf8")));
+/** File names in dist/assets (fonts to preload among them), read once. */
+let clientAssets: string[] | null = null;
+const readClientAssets = (): string[] => (clientAssets ??= fs.readdirSync(path.resolve(__dirname, "dist/assets")));
 
 /** Rendered through the catch-all route, then moved to dist/404.html. */
 const NOT_FOUND_ROUTE = "/404";
@@ -92,7 +102,7 @@ export default defineConfig({
       overlay: false,
     },
   },
-  plugins: [react(), contentPlugin(__dirname), notoSansSc(), githubPagesPreview()],
+  plugins: [react(), contentPlugin(__dirname), cardPlugin(), notoSansSc(), githubPagesPreview()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -113,14 +123,15 @@ export default defineConfig({
         .filter((p) => /(^|\/)(insights|news|procedures|commodities|mandates|documents)\/[a-z0-9-]+$/.test(p))
         // Same form as the links (/insights/<slug>/): the browser looks up prerendered data by exact path.
         .map((p) => `${p.startsWith("/") ? p : `/${p}`}/`);
-      return [...new Set([...prerenderPaths(), ...articles, NOT_FOUND_ROUTE])];
+      // /card/ is prerendered but stays out of the sitemap and every navigation.
+      return [...new Set([...prerenderPaths(), ...articles, "/card/", NOT_FOUND_ROUTE])];
     },
     // Helmet tags are injected right after <head>; keep the charset declaration first.
     onPageRendered: (route, html) => {
       const charset = html.match(/<meta charset="[^"]*">/i)?.[0];
       const sorted = charset ? html.replace(charset, "").replace("<head>", `<head>${charset}`) : html;
       const language = route.match(/^\/?(ru|zh)(\/|$)/)?.[1] ?? "en";
-      return improvePageHead(sorted, readClientManifest(), language);
+      return improvePageHead(sorted, readClientManifest(), language, readClientAssets());
     },
     onFinished: async (dir) => {
       const outDir = path.resolve(__dirname, dir);
@@ -135,10 +146,16 @@ export default defineConfig({
       await writePagePreviews(__dirname, outDir);
       // Custom domain (kpsglobal.id) travels with the site.
       fs.copyFileSync(path.resolve(__dirname, "CNAME"), path.join(outDir, "CNAME"));
+      unlistCardData(outDir);
       // No PDF, DOCX or XLSX ever leaves the repository through the site.
       assertNoDocumentFiles(outDir);
       // One canonical, unique titles and descriptions, JSON-LD that parses, a sitemap without noindex pages.
-      const problems = checkBuiltPages(outDir);
+      const problems = [
+        ...checkBuiltPages(outDir, { prices: canonPrices() }),
+        ...checkCardPage(outDir),
+        ...checkInternalLinks(outDir),
+        ...checkVerbatimFiles(path.resolve(__dirname, "public"), outDir),
+      ];
       if (problems.length) throw new Error(`Built pages:\n${problems.map((p) => `  - ${p}`).join("\n")}`);
     },
   },

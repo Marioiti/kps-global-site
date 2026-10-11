@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Linkedin } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { localizePath } from '@/i18n/locales';
 import { canon } from '@/data/canon';
@@ -13,7 +14,7 @@ const SECTIONS = [
   { key: 'nav.mandates', path: '/mandates/' },
 ];
 
-/** One line of company details, the privacy policy and the direct channels. No slogans. */
+/** One line of company details, the direct channels, the company on LinkedIn and the privacy policy. No slogans. */
 const Footer: React.FC = () => {
   const { t, language } = useLanguage();
   const { legal, contacts } = canon;
@@ -49,7 +50,7 @@ const Footer: React.FC = () => {
           {contacts.wechat && (
             <li>
               {/* WeChat has no web link: the ID is on the contact page with a copy button. */}
-              <Link to={`${localizePath('/contact/', language)}#wechat`} className={link} title={`WeChat: ${contacts.wechat}`}>
+              <Link to={`${localizePath('/contact/', language)}#wechat`} className={link} title={`WeChat: ${contacts.wechat.id}`}>
                 WeChat
               </Link>
             </li>
@@ -61,6 +62,13 @@ const Footer: React.FC = () => {
               </Link>
             </li>
           ))}
+          <li>
+            <a href={contacts.linkedinCompany} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center gap-1.5 ${link}`}>
+              <Linkedin size={14} aria-hidden="true" />
+              LinkedIn
+              <span className="sr-only"> {canon.brand}</span>
+            </a>
+          </li>
           <li>
             <Link to={localizePath('/privacy/', language)} className={link}>
               {t('footer.privacy')}

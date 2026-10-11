@@ -10,7 +10,8 @@ import {
 } from '@/i18n/locales';
 import { canon } from '@/data/canon';
 import type { Language } from '@/i18n/translations';
-import { serializeJsonLd, type JsonLd } from '@/seo/jsonld';
+import { organizationJsonLd, personJsonLd, serializeJsonLd, type JsonLd } from '@/seo/jsonld';
+import { shorten } from '@/seo/text';
 import { OG_SIZE, pagePreviewPath } from '@/content/preview';
 
 const DEFAULT_OG_IMAGE = absoluteUrl('/og-image.png');
@@ -32,6 +33,8 @@ interface SEOProps {
   image?: string;
   imageSize?: { width: number; height: number } | null;
   noindex?: boolean;
+  /** With noindex: links on the page are not followed either (hidden pages). */
+  nofollow?: boolean;
   /** Languages that have this page's own text (hreflang). Defaults to all. */
   alternateLanguages?: readonly Language[];
   /** Language whose URL is canonical. Defaults to the current one; a page showing
@@ -53,6 +56,7 @@ const SEO: React.FC<SEOProps> = ({
   image,
   imageSize,
   noindex = false,
+  nofollow = false,
   alternateLanguages = LANGUAGES,
   canonicalLanguage,
   ogType = 'website',
@@ -60,6 +64,14 @@ const SEO: React.FC<SEOProps> = ({
   jsonLd = [],
 }) => {
   const { language, t } = useLanguage();
+  // Titles stay within 60 characters: the brand suffix goes when the page name is long.
+  const suffix = ` · ${canon.brand}`;
+  const fullTitle = title.length > 60 && title.endsWith(suffix) ? title.slice(0, -suffix.length) : title;
+  // Descriptions stay within 155 characters: a long one is cut at a word, with an ellipsis.
+  const metaDescription = shorten(description, 155);
+  const metaSocial = shorten(socialDescription, 155);
+  // The company and its founder on every page, the same nodes everywhere.
+  const graph = [organizationJsonLd(), personJsonLd(), ...jsonLd].filter((node): node is JsonLd => node !== null);
   const url = path ? absoluteUrl(localizePath(path, canonicalLanguage ?? language)) : undefined;
   const ogLanguage = canonicalLanguage ?? language;
   const pageImage = !image && path && !noindex;
@@ -69,12 +81,12 @@ const SEO: React.FC<SEOProps> = ({
 
   return (
     <Head>
-      <title>{title}</title>
-      <meta name="description" content={description} />
+      <title>{fullTitle}</title>
+      <meta name="description" content={metaDescription} />
       <meta name="author" content={canon.legal.name} />
       <meta
         name="robots"
-        content={noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large'}
+        content={noindex ? `noindex, ${nofollow ? 'nofollow' : 'follow'}` : 'index, follow, max-image-preview:large'}
       />
       {url && <link rel="canonical" href={url} />}
       {path &&
@@ -97,8 +109,8 @@ const SEO: React.FC<SEOProps> = ({
       <meta property="og:type" content={ogType} />
       {publishedTime && <meta property="article:published_time" content={publishedTime} />}
       <meta property="og:site_name" content={canon.brand} />
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={socialDescription} />
+      <meta property="og:title" content={fullTitle} />
+      <meta property="og:description" content={metaSocial} />
       {url && <meta property="og:url" content={url} />}
       <meta property="og:image" content={ogImage} />
       {size && <meta property="og:image:width" content={String(size.width)} />}
@@ -110,11 +122,11 @@ const SEO: React.FC<SEOProps> = ({
       ))}
 
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={socialDescription} />
+      <meta name="twitter:title" content={fullTitle} />
+      <meta name="twitter:description" content={metaSocial} />
       <meta name="twitter:image" content={ogImage} />
 
-      {jsonLd.map((data, i) => (
+      {graph.map((data, i) => (
         <script key={i} type="application/ld+json">
           {serializeJsonLd(data)}
         </script>

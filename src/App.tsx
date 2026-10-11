@@ -131,6 +131,14 @@ export const routes: RouteRecord[] = [
         },
         children: pageRoutes(),
       })),
+      // Andrei's card: English only, outside the site layout and every navigation, not indexed.
+      {
+        path: "card",
+        lazy: async () => {
+          await loadStrings(DEFAULT_LANGUAGE);
+          return { Component: (await import("./pages/Card")).default };
+        },
+      },
       {
         path: "*",
         lazy: async () => {

@@ -56,6 +56,23 @@ export function buildSitemap(pages: SitemapPage[] = STATIC_PAGES): string {
   ].join('\n');
 }
 
+/** Search and AI crawlers named explicitly, each allowed the whole site. */
+export const ALLOWED_BOTS = [
+  'GPTBot',
+  'OAI-SearchBot',
+  'ChatGPT-User',
+  'ClaudeBot',
+  'Claude-SearchBot',
+  'Claude-User',
+  'PerplexityBot',
+  'Perplexity-User',
+  'Google-Extended',
+  'Applebot-Extended',
+  'Bingbot',
+  'YandexBot',
+];
+
 export function buildRobots(): string {
-  return ['User-agent: *', 'Allow: /', '', `Sitemap: ${absoluteUrl('/sitemap.xml')}`, ''].join('\n');
+  const block = (agent: string) => [`User-agent: ${agent}`, 'Allow: /', ''];
+  return [...block('*'), ...ALLOWED_BOTS.flatMap(block), `Sitemap: ${absoluteUrl('/sitemap.xml')}`, ''].join('\n');
 }

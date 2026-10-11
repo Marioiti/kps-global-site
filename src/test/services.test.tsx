@@ -40,7 +40,7 @@ describe("service pages", () => {
     expect(screen.getByRole("heading", { level: 1, name: translations.en["svc.deal.title"] })).toBeInTheDocument();
     expect(document.querySelector("main")).toHaveTextContent("合同");
     const ids = [...document.querySelectorAll("main section[id]")].map((s) => s.id);
-    expect(ids).toEqual(["when", "how", "fees", "results", "faq"]);
+    expect(ids).toEqual(["when", "how", "fees", "results", "faq", "see-also"]);
     expect(document.getElementById("faq")).toHaveTextContent("伍");
     const results = document.getElementById("results")!;
     expect(within(results).getAllByRole("listitem")).toHaveLength(4);
@@ -49,6 +49,20 @@ describe("service pages", () => {
     const proposals = screen.getAllByRole("link", { name: translations.en["cta.proposal"] }).map((a) => a.getAttribute("href"));
     expect(proposals).toContain("/contact/?intent=proposal&service=deal-structuring");
     expect(screen.getByRole("link", { name: translations.en["cta.sendOffer"] })).toHaveAttribute("href", "/contact/?service=offer-check");
+  });
+
+  it("link the related commodity under See also, in the page's language", async () => {
+    const expected = {
+      "/services/deal-structuring/": "/commodities/aluminium/",
+      "/ru/services/compliance-kyc/": "/ru/commodities/diesel/",
+      "/zh/services/fractional-coo/": "/zh/commodities/sulphur/",
+    };
+    for (const [path, link] of Object.entries(expected)) {
+      await renderAt(path);
+      const section = document.getElementById("see-also")!;
+      expect(within(section).getAllByRole("link").map((a) => a.getAttribute("href"))).toContain(link);
+      document.body.innerHTML = "";
+    }
   });
 
   it("show the fees as a table: work, time, fee, with prices from the canon and a proposal where there is none", async () => {
@@ -82,17 +96,31 @@ describe("service pages", () => {
     expect(within(document.getElementById("results")!).getAllByRole("listitem")).toHaveLength(1);
   });
 
-  it("describe the service as Service data, provided by the organisation, without a price", async () => {
+  it("describe the service as Service data, provided by the company, with an Offer for each check that has a price", async () => {
     await renderAt("/zh/services/compliance-kyc/");
     const data = await jsonLd("Service");
     expect(data).toMatchObject({
       name: translations.zh["menu.kyc.title"],
       serviceType: "Compliance, KYC and sanctions screening",
       url: "https://kpsglobal.id/zh/services/compliance-kyc/",
-      provider: { "@id": "https://kpsglobal.id/#organization" },
+      provider: { "@id": "https://kpsglobal.id/#org" },
     });
     expect(data.areaServed.map((p: { name: string }) => p.name)).toEqual(["Gulf", "Central Asia", "China", "Southeast Asia"]);
-    expect(JSON.stringify(data)).not.toMatch(/offers|price|USD/i);
+    expect(data.offers).toEqual([
+      expect.objectContaining({ priceCurrency: "USD", priceSpecification: { "@type": "PriceSpecification", minPrice: 500, priceCurrency: "USD" } }),
+    ]);
+  });
+
+  it("give the deal service an Offer for the offer check and the deal health check, at the canon prices", async () => {
+    await renderAt("/services/deal-structuring/");
+    const deal = await jsonLd("Service");
+    const amounts = deal.offers.map((o: { priceSpecification: { minPrice: number } }) => o.priceSpecification.minPrice);
+    expect(amounts).toEqual([canon.products.offerCheck.priceFrom, canon.products.dealHealthCheck.priceFrom].map((p) => Number(p.replace(/\D/g, ""))));
+  });
+
+  it("give the Fractional COO service no Offer: its terms are by proposal", async () => {
+    await renderAt("/services/fractional-coo/");
+    expect((await jsonLd("Service")).offers).toBeUndefined();
   });
 
   it("publish their questions as FAQPage data matching the visible ones", async () => {

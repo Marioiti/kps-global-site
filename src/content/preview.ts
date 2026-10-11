@@ -5,7 +5,7 @@ import type { ContentEntry } from './types';
  * Link-preview image of an item: its `cover`, else the image generated at build
  * (dist/og/<slug>-<lang>.png).
  */
-export const OG_SIZE = { width: 1200, height: 627 };
+export const OG_SIZE = { width: 1200, height: 630 };
 export const GENERATED_PREVIEW_LANGUAGES: readonly Language[] = ['en', 'ru', 'zh'];
 
 export const generatedPreviewPath = (slug: string, language: Language): string => `/og/${slug}-${language}.png`;

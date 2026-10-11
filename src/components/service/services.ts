@@ -29,6 +29,8 @@ export interface ServiceConfig {
   feesNote: string;
   finalKey: string;
   faq: number;
+  /** "See also": two documents and one commodity page. */
+  related: { documents: [string, string]; commodity: string };
 }
 
 export const SERVICES: ServiceConfig[] = [
@@ -51,6 +53,7 @@ export const SERVICES: ServiceConfig[] = [
     feesNote: 'svc.fees.note',
     finalKey: 'svc.final.deal',
     faq: 6,
+    related: { documents: ['offer-check', 'deal-health-check'], commodity: 'aluminium' },
   },
   {
     slug: 'compliance-kyc',
@@ -70,6 +73,7 @@ export const SERVICES: ServiceConfig[] = [
     feesNote: 'svc.fees.note',
     finalKey: 'svc.final.deal',
     faq: 5,
+    related: { documents: ['kyc-questionnaire', 'client-information-sheet'], commodity: 'diesel' },
   },
   {
     slug: 'fractional-coo',
@@ -86,6 +90,7 @@ export const SERVICES: ServiceConfig[] = [
     feesNote: 'svc.fees.invoice',
     finalKey: 'svc.final.project',
     faq: 6,
+    related: { documents: ['ictsa', 'jwa'], commodity: 'sulphur' },
   },
 ];
 

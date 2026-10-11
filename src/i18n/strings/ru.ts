@@ -86,9 +86,8 @@ export const ru: Record<string, string> = {
 
   // SEO
   'seo.titleSuffix': '{title} · {brand}',
-  'seo.home.title': '{brand} — сделки с сырьём и Fractional COO',
-  'seo.home.description':
-    'Независимый консалтинг по двум направлениям: структурирование и ведение сделок с сырьём между Персидским заливом, Центральной Азией, Китаем и ЮВА и Fractional COO.',
+  'seo.home.title': '{brand} · проверка и структура сделок с сырьём',
+  'seo.home.description': 'Независимый консалтинг по сделкам с сырьём: проверка оферт за {offerHours} часов, структура сделки, комплаенс и KYC, Fractional COO. Бали и Санья.',
   'seo.home.socialDescription':
     'Структурирование сделок с сырьём и Fractional COO для трансграничных проектов. Независимо, с приоритетом комплаенса.',
   'seo.services.description':
@@ -288,6 +287,7 @@ export const ru: Record<string, string> = {
   'svc.fees.title': 'Стоимость',
   'svc.fees.invoice': 'Оплата по счёту {legalName}.',
   'svc.faq.title': 'Вопросы об этой услуге',
+  'svc.related.title': 'См. также',
   'svc.deal.title': 'Сделки с сырьём, выстроенные до закрытия.',
   'svc.deal.lead': 'Для покупателей, продавцов и инвесторов. Проверяем обе стороны, строим структуру, которую примут банки, и держим документы в порядке от оферты до выгрузки.',
   'svc.deal.when1': 'У вас есть оферта, и вы не уверены, что продавец настоящий.',
@@ -566,4 +566,15 @@ export const ru: Record<string, string> = {
   'mandate.cardHeading': 'Мандат',
   'svc.deal.q6': 'Каким правом регулируется наш договор?',
   'svc.deal.a6': 'Правом Гонконга, арбитраж в HKIAC.',
+  'card.title': '{name} · Визитка',
+  'card.description': 'Визитка: {name}, KPS Global Solutions.',
+  'card.website': 'Сайт',
+  'card.save': 'Сохранить контакт',
+  'card.share': 'Поделиться',
+  'card.copied': 'Ссылка скопирована',
+  'card.qrTitle': 'QR-коды',
+  'card.qrLabel': 'QR-код: {channel}',
+  'card.pageQr': 'Эта визитка: kpsglobal.id/card',
+  'card.linkedinCompany': 'LinkedIn компании',
+  'card.thisCard': 'Визитка',
 };

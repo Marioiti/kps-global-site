@@ -94,6 +94,33 @@ describe("header and footer", () => {
     expect(within(footer).getByRole("link", { name: translations.en["footer.privacy"] })).toHaveAttribute("href", "/privacy/");
     expect(within(footer).getByRole("link", { name: "WeChat" })).toHaveAttribute("href", "/contact/#wechat");
     expect(footer).not.toHaveTextContent(/Reputation over speed|Independent/);
+    expect(within(footer).getByRole("link", { name: `LinkedIn ${canon.brand}` })).toHaveAttribute("href", canon.contacts.linkedinCompany);
+  });
+
+  it("describe the company and its founder as linked nodes, the company with its LinkedIn page", async () => {
+    await renderAt("/");
+    await waitFor(() => expect(document.head.innerHTML).toContain('"ProfessionalService"'));
+    const data = [...document.head.querySelectorAll('script[type="application/ld+json"]')].map((s) => JSON.parse(s.textContent!));
+    // ProfessionalService is the Organization type the site uses.
+    const org = data.find((d) => d["@type"] === "ProfessionalService");
+    const person = data.find((d) => d["@type"] === "Person");
+    const site = data.find((d) => d["@type"] === "WebSite");
+    expect(org).toMatchObject({
+      "@id": "https://kpsglobal.id/#org",
+      name: "KPS Global Solutions",
+      legalName: "PT KPS Global Solutions",
+      alternateName: ["KPS Global", "kpsglobal.id"],
+      knowsLanguage: ["en", "ru", "zh"],
+      founder: { "@id": "https://kpsglobal.id/#andrei-orlov" },
+      sameAs: [canon.contacts.linkedinCompany],
+      address: { addressLocality: "Denpasar", addressRegion: "Bali", addressCountry: "ID" },
+    });
+    expect(person).toMatchObject({
+      "@id": "https://kpsglobal.id/#andrei-orlov",
+      worksFor: { "@id": "https://kpsglobal.id/#org" },
+      sameAs: [canon.founder!.linkedin],
+    });
+    expect(site).toMatchObject({ inLanguage: "en", publisher: { "@id": "https://kpsglobal.id/#org" } });
   });
 });
 

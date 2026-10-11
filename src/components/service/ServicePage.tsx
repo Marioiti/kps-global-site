@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { canon, formatPrice } from '@/data/canon';
 import { localizePath } from '@/i18n/locales';
-import { getCases } from '@/content';
+import { commodityCard, displayVersion, documentsBySlugs, entryUrl, getCases } from '@/content';
 import PageSEO from '@/components/PageSEO';
 import GlyphHero from '@/components/v3/GlyphHero';
 import DossierSection from '@/components/v3/DossierSection';
@@ -18,7 +18,8 @@ const count = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
 
 /**
  * One service page: the page sign and the promise, then numbered sections: when clients call us,
- * how it runs, fees, cases of the service (when there are any), questions, and a proposal.
+ * how it runs, fees, cases of the service (when there are any), questions, see also (two documents
+ * and a commodity), and a proposal.
  */
 const ServicePage: React.FC<{ slug: ServiceSlug }> = ({ slug }) => {
   const { t, language } = useLanguage();
@@ -30,6 +31,23 @@ const ServicePage: React.FC<{ slug: ServiceSlug }> = ({ slug }) => {
   const cases = getCases().filter((item) => item.services.includes(slug));
   const contact = localizePath('/contact/', language);
   const proposal = `${contact}?intent=proposal&service=${slug}`;
+  const commodity = canon.commodities.find((c) => c.id === config.related.commodity);
+  const related = [
+    ...documentsBySlugs(config.related.documents).map((entry) => {
+      const version = displayVersion(entry, language);
+      return { key: entry.slug, kind: t('nav.documents'), to: entryUrl(entry, language), title: version.title, text: version.description, lang: version.language };
+    }),
+    ...(commodity
+      ? [{
+          key: commodity.id,
+          kind: t('nav.commodities'),
+          to: localizePath(`/commodities/${commodity.id}/`, language),
+          title: commodity.name[language],
+          text: commodityCard(commodity.id, language)?.grade ?? '',
+          lang: language,
+        }]
+      : []),
+  ];
   let n = 0;
   const next = () => ++n;
 
@@ -44,7 +62,17 @@ const ServicePage: React.FC<{ slug: ServiceSlug }> = ({ slug }) => {
           { name, path },
         ]}
         jsonLd={[
-          serviceJsonLd({ name, serviceType: config.serviceType, description: t(config.seoKey), path, language }),
+          serviceJsonLd({
+            name,
+            serviceType: config.serviceType,
+            description: t(config.seoKey),
+            path,
+            language,
+            offers: config.fees.flatMap((row) => {
+              const price = row.price ? canon.products[row.price].priceFrom : null;
+              return price ? [{ name: t(`${row.key}.name`), priceFrom: price }] : [];
+            }),
+          }),
           faqJsonLd(faq),
         ]}
       />
@@ -130,6 +158,26 @@ const ServicePage: React.FC<{ slug: ServiceSlug }> = ({ slug }) => {
       <DossierSection id="faq" n={next()} band={cases.length === 0}>
         <h2 className="h2-v3 mb-6">{t('svc.faq.title')}</h2>
         <QuestionsList items={faq} />
+      </DossierSection>
+
+      <DossierSection id="see-also" n={next()} band={cases.length > 0}>
+        <h2 className="h2-v3 mb-[22px]">{t('svc.related.title')}</h2>
+        <RuledList
+          items={related.map((item) => ({
+            key: item.key,
+            content: (
+              <div className="grid gap-x-6 gap-y-1 py-4 md:grid-cols-[200px_minmax(0,1fr)]">
+                <p className="text-[15px] text-muted-foreground">{item.kind}</p>
+                <p lang={item.lang} className="text-body">
+                  <Link to={item.to} className="link-v3 font-semibold">
+                    {item.title}
+                  </Link>
+                  {item.text && <> · {item.text}</>}
+                </p>
+              </div>
+            ),
+          }))}
+        />
       </DossierSection>
 
       <FinalCta title={t(config.finalKey)} bare action={{ label: t('cta.proposal'), to: proposal }} />

@@ -1,5 +1,5 @@
 ---
-title: "ICTSA — International Consulting & Transaction Support Agreement"
+title: "ICTSA: International Consulting & Transaction Support"
 group: engagement
 stage: contracts
 issuer: kps

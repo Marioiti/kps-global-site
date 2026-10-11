@@ -6,6 +6,8 @@ import { allTranslations as translations } from '../i18n/all-strings';
 import { COLLECTION_PATHS, LANGUAGES } from '../i18n/locales';
 import { STATIC_PAGES, buildRobots, buildSitemap, type SitemapPage } from '../seo/sitemap';
 import { buildFeed, feedPath } from '../seo/feed';
+import { LIST_SOURCES, PAGE_SOURCES, makeLastmod } from '../seo/lastmod';
+import { buildLlms, buildLlmsFull } from '../seo/llms';
 import { renderOgImage } from '../seo/og-image';
 import { loadContent } from './load';
 import { GENERATED_PREVIEW_LANGUAGES, generatedPreviewPath } from './preview';
@@ -22,27 +24,45 @@ const t = (language: Language, key: string, vars: Record<string, string> = {}) =
 
 const publishedLanguages = (entry: ContentEntry): Language[] => LANGUAGES.filter((l) => entry.versions[l]);
 
-export function sitemapPages(entries: ContentEntry[], mandates: MandateEntry[] = []): SitemapPage[] {
+/**
+ * Every indexable page of the sitemap. With `lastmod`, each page gets the date of the last commit
+ * to its sources (see src/seo/lastmod.ts); content items fall back to their own date.
+ */
+export function sitemapPages(
+  entries: ContentEntry[],
+  mandates: MandateEntry[] = [],
+  lastmod?: (paths: string[]) => string,
+): SitemapPage[] {
   const hasItems = (listPath: string) =>
     listPath === '/mandates/' ? mandates.length > 0 : entries.some((e) => listPath === `/${e.collection}/`);
+  const dated = (paths: string[], fallback?: string) => (lastmod ? { lastmod: lastmod(paths) } : fallback ? { lastmod: fallback } : {});
+  const pages = STATIC_PAGES.map((page): SitemapPage => ({ ...page, ...dated(PAGE_SOURCES[page.path] ?? []) }));
   const lists = COLLECTION_PATHS.filter(hasItems).map(
-    (listPath): SitemapPage => ({ path: listPath, languages: LANGUAGES }),
+    (listPath): SitemapPage => ({ path: listPath, languages: LANGUAGES, ...dated(LIST_SOURCES[listPath] ?? []) }),
   );
   const items = entries.map(
     (entry): SitemapPage => ({
       path: `/${entry.collection}/${entry.slug}/`,
       // Documents are in English: their pages in other languages point to the English one.
       languages: entry.collection === 'documents' ? ['en'] : publishedLanguages(entry),
-      lastmod: entry.date,
+      ...dated([`content/${entry.collection}/${entry.slug}`], entry.date),
     }),
   );
   const commodityPages = canon.commodities.map(
-    (commodity): SitemapPage => ({ path: `/commodities/${commodity.id}/`, languages: LANGUAGES }),
+    (commodity): SitemapPage => ({
+      path: `/commodities/${commodity.id}/`,
+      languages: LANGUAGES,
+      ...dated(['src/pages/Commodity.tsx', `content/commodities/${commodity.id}`]),
+    }),
   );
   const mandatePages = mandates.map(
-    (mandate): SitemapPage => ({ path: `/mandates/${mandate.slug}/`, languages: LANGUAGES, lastmod: mandate.published }),
+    (mandate): SitemapPage => ({
+      path: `/mandates/${mandate.slug}/`,
+      languages: LANGUAGES,
+      ...dated([`content/mandates/${mandate.slug}`], mandate.published),
+    }),
   );
-  return [...STATIC_PAGES, ...commodityPages, ...lists, ...items, ...mandatePages];
+  return [...pages, ...commodityPages, ...lists, ...items, ...mandatePages];
 }
 
 const DOCUMENT_FILE = /\.(pdf|docx?|xlsx)$/i;
@@ -64,15 +84,18 @@ export function assertNoDocumentFiles(outDir: string): void {
 }
 
 export async function writeContentOutputs(rootDir: string, outDir: string): Promise<void> {
-  const { entries, mandates } = loadContent(rootDir);
+  const { entries, mandates, commodities } = loadContent(rootDir);
   const write = (relative: string, data: string | Buffer) => {
     const file = path.join(outDir, relative);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, data);
   };
 
-  write('sitemap.xml', buildSitemap(sitemapPages(entries, mandates)));
+  write('sitemap.xml', buildSitemap(sitemapPages(entries, mandates, makeLastmod(rootDir))));
   write('robots.txt', buildRobots());
+  const llmsInput = { commodities, documents: entries.filter((entry) => entry.collection === 'documents') };
+  write('llms.txt', buildLlms(llmsInput));
+  write('llms-full.txt', buildLlmsFull(llmsInput));
 
   for (const language of LANGUAGES) {
     write(

@@ -28,6 +28,6 @@ describe("fixed-page previews", () => {
     const png = fs.readFileSync(path.join(dist, "og", "page-services-en.png"));
     expect(png.subarray(1, 4).toString()).toBe("PNG");
     expect(png.readUInt32BE(16)).toBe(1200);
-    expect(png.readUInt32BE(20)).toBe(627);
+    expect(png.readUInt32BE(20)).toBe(630);
   });
 });

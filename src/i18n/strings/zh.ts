@@ -85,9 +85,8 @@ export const zh: Record<string, string> = {
 
   // SEO
   'seo.titleSuffix': '{title} · {brand}',
-  'seo.home.title': '{brand} — 大宗商品交易结构设计与 Fractional COO',
-  'seo.home.description':
-    '两条业务线的独立顾问：构建并推进海湾地区、中亚与中国、东南亚之间的大宗商品交易，以及 Fractional COO 运营领导。',
+  'seo.home.title': '{brand} · 大宗商品交易核查与结构设计',
+  'seo.home.description': '跨境大宗商品交易独立顾问：{offerHours} 小时报价核查、交易结构设计、合规与 KYC、Fractional COO。巴厘岛与三亚。',
   'seo.home.socialDescription': '为跨境项目提供大宗商品交易结构设计与 Fractional COO 运营领导。独立，合规优先。',
   'seo.services.description': '两条同等重要的业务线——大宗商品交易结构设计与 Fractional COO——合规与 KYC 是共同基础。',
   'seo.dealStructuring.description':
@@ -280,6 +279,7 @@ export const zh: Record<string, string> = {
   'svc.fees.title': '费用',
   'svc.fees.invoice': '凭 {legalName} 开具的发票付款。',
   'svc.faq.title': '关于这项服务的问题',
+  'svc.related.title': '另见',
   'svc.deal.title': '以成交为目标设计的大宗商品交易。',
   'svc.deal.lead': '面向买方、卖方和投资人。我们核查双方，搭建银行认可的交易结构，并从报价到卸货全程管好单据。',
   'svc.deal.when1': '您手上有一份报价，但不确定卖方是否真实。',
@@ -558,4 +558,15 @@ export const zh: Record<string, string> = {
   'mandate.cardHeading': '委托内容',
   'svc.deal.q6': '我们的协议适用哪国法律？',
   'svc.deal.a6': '适用香港法律，在香港国际仲裁中心（HKIAC）仲裁。',
+  'card.title': '{name} · 名片',
+  'card.description': '{name} 的名片，KPS Global Solutions。',
+  'card.website': '网站',
+  'card.save': '保存联系人',
+  'card.share': '分享名片',
+  'card.copied': '链接已复制',
+  'card.qrTitle': '二维码',
+  'card.qrLabel': '二维码：{channel}',
+  'card.pageQr': '本名片：kpsglobal.id/card',
+  'card.linkedinCompany': '公司 LinkedIn',
+  'card.thisCard': '名片',
 };

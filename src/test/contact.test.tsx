@@ -56,7 +56,7 @@ describe("contact page", () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
     await renderAt("/contact/");
-    const id = canon.contacts.wechat!;
+    const id = canon.contacts.wechat!.id;
     const aside = document.querySelector("main aside") as HTMLElement;
     expect(within(aside).getByText(id)).toBeInTheDocument();
     fireEvent.click(within(aside).getByRole("button", { name: `${en["contact.copy"]} ${en["contact.wechat"]} ${id}` }));

@@ -1,40 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
+import WechatCopy from '@/components/WechatCopy';
 import PageSEO from '@/components/PageSEO';
 import ContactForm from '@/components/ContactForm';
 import PageGlyph from '@/components/v3/PageGlyph';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { canon } from '@/data/canon';
-
-/** The WeChat ID as text with a button that copies it; WeChat has no web link to open. */
-const WechatChannel: React.FC<{ id: string }> = ({ id }) => {
-  const { t } = useLanguage();
-  const [copied, setCopied] = useState(false);
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(id);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2500);
-    } catch {
-      // Without clipboard access the ID stays on the page to copy by hand.
-    }
-  };
-  return (
-    <span id="wechat" className="inline-flex flex-wrap items-center gap-x-3 gap-y-1 scroll-mt-28">
-      <span className="select-all">{id}</span>
-      <button
-        type="button"
-        onClick={copy}
-        className="px-2.5 py-1 text-sm border border-border text-foreground hover:border-foreground transition-colors"
-      >
-        {t('contact.copy')}
-        <span className="sr-only"> {t('contact.wechat')} {id}</span>
-      </button>
-      <span aria-live="polite" className="text-sm text-muted-foreground">
-        {copied ? t('contact.copied') : ''}
-      </span>
-    </span>
-  );
-};
 
 /**
  * /contact/: request a proposal. The page sign 合作, what happens next and the direct channels
@@ -109,7 +79,7 @@ const Contact: React.FC = () => {
               <>
                 <dt className="text-muted-foreground">{t('contact.wechat')}</dt>
                 <dd>
-                  <WechatChannel id={contacts.wechat} />
+                  <WechatCopy id={contacts.wechat.id} anchor="wechat" />
                 </dd>
               </>
             )}

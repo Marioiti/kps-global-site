@@ -28,6 +28,11 @@ const PRACTICE_SINCE = '2017';
 
 export const canon = {
   brand: 'KPS Global Solutions',
+  /** Other names people search for; the full brand is always used on the site. */
+  alternateNames: ['KPS Global', 'kpsglobal.id'],
+  /** One line about the company, in English, for structured data and llms.txt. */
+  description:
+    'Independent advisory for cross-border commodity deals: offer checks, deal structuring, compliance and KYC, and Fractional COO work.',
 
   legal: {
     name: 'PT KPS Global Solutions',
@@ -129,15 +134,14 @@ export const canon = {
 
   contacts: {
     email: 'mnc@kpsglobal.id',
-    whatsapp: { display: '+7 914 557 4000', url: 'https://wa.me/79145574000' } as {
-      display: string;
-      url: string;
-    } | null,
+    /** WhatsApp Business link: opens a chat without showing a phone number. */
+    whatsappBusiness: 'https://wa.me/message/OA27FPCRDJMQK1',
+    whatsapp: { url: 'https://wa.me/message/OA27FPCRDJMQK1' } as { url: string } | null,
     telegram: { handle: '@An0rlov', url: 'https://t.me/An0rlov' } as {
       handle: string;
       url: string;
     } | null,
-    wechat: 'andreworlov' as string | null,
+    wechat: { id: 'andreworlov', url: 'https://u.wechat.com/kJdzNbiDgZUtw27Bk3pN6lg?s=2' } as { id: string; url: string } | null,
     linkedinCompany: 'https://www.linkedin.com/company/kpsglobal',
     linkedinFounder: 'https://www.linkedin.com/in/anorlov/',
   },

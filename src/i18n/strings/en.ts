@@ -86,9 +86,8 @@ export const en: Record<string, string> = {
 
   // SEO (page <head>)
   'seo.titleSuffix': '{title} · {brand}',
-  'seo.home.title': '{brand} · Commodity deal checks, structuring and Fractional COO',
-  'seo.home.description':
-    'Independent advisory on two lines: structuring and running commodity deals between the Gulf, Central Asia, China and Southeast Asia, and Fractional COO leadership.',
+  'seo.home.title': '{brand} · Commodity deal checks and structuring',
+  'seo.home.description': 'Independent advisory for cross-border commodity deals: offer checks in {offerHours} hours, deal structuring, compliance and KYC, Fractional COO. Bali and Sanya.',
   'seo.home.socialDescription':
     'Commodity deal structuring and Fractional COO leadership for cross-border projects. Independent, compliance-first.',
   'seo.services.description': 'Two equal lines of work, commodity deal structuring and Fractional COO leadership, with compliance and KYC under both.',
@@ -287,6 +286,7 @@ export const en: Record<string, string> = {
   'svc.fees.title': 'Fees',
   'svc.fees.invoice': 'Paid against an invoice from {legalName}.',
   'svc.faq.title': 'Questions about this service',
+  'svc.related.title': 'See also',
   'svc.deal.title': 'Commodity deals structured to close.',
   'svc.deal.lead': 'For buyers, sellers and investors. We check both sides, build a structure the banks accept and keep the documents in order from the offer to discharge.',
   'svc.deal.when1': 'You have an offer and you are not sure the seller is real.',
@@ -565,4 +565,15 @@ export const en: Record<string, string> = {
   'mandate.cardHeading': 'The mandate',
   'svc.deal.q6': 'Which law governs our agreement?',
   'svc.deal.a6': 'Hong Kong law, with arbitration at HKIAC.',
+  'card.title': '{name} · Card',
+  'card.description': 'Contact card of {name}, KPS Global Solutions.',
+  'card.website': 'Website',
+  'card.save': 'Save contact',
+  'card.share': 'Share card',
+  'card.copied': 'Link copied',
+  'card.qrTitle': 'QR codes',
+  'card.qrLabel': 'QR code: {channel}',
+  'card.pageQr': 'This card: kpsglobal.id/card',
+  'card.linkedinCompany': 'LinkedIn company',
+  'card.thisCard': 'Card',
 };
